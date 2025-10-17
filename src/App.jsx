@@ -251,8 +251,8 @@ export default function App() {
             <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition-transform transform hover:scale-105"><LockIcon/><span className="hidden sm:inline">Admin</span></button>
         </div>
 
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <main className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-2/3">
             <div className="bg-gray-800 p-2 sm:p-4 rounded-xl shadow-2xl relative overflow-x-auto">
                 <div className="grid grid-cols-11 gap-1 min-w-[800px] md:min-w-full">
                     <div className="relative aspect-square bg-gray-700 rounded-md font-bold text-white text-xs overflow-hidden">
@@ -287,7 +287,7 @@ export default function App() {
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-purple-500 bg-gray-700"></div><span>Final Winner</span></div>
             </div>
           </div>
-          <div className="bg-gray-800 p-6 rounded-xl shadow-lg">
+          <div className="lg:w-1/3 bg-gray-800 p-6 rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold mb-4 text-center text-yellow-400">Claim Your Squares</h2>
             <form onSubmit={handleClaimSubmit}>
               <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="name">Your Name</label><input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div>
