@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
 
 // --- CONFIGURATION --- //
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxrTT5_aa7rSdBtE9K4LJnNuNL6sn9mTz9ETVTNdfLJp_WU0aku0k5lbd1aPILkh3GLbw/exec';
+// UPDATED API URL:
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyvCAJZGa76qQ7ipJFqmmF4tH2GUXJuP7p4H6pQ08YcH0LXpfvtO1gZhqPwLVU7r0B4kQ/exec';
 
 // --- HELPER ICONS --- //
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
@@ -34,6 +35,7 @@ export default function App() {
   // UI State
   const [selectedSquares, setSelectedSquares] = useState([]);
   const [formName, setFormName] = useState('');
+  const [formInitials, setFormInitials] = useState('');
   const [formPaymentMethod, setFormPaymentMethod] = useState('');
   const [numToRandomize, setNumToRandomize] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -62,7 +64,7 @@ export default function App() {
       setFullGameNumbers(data.fullGameNumbers || { home: [], away: [] });
       setFourQuarterNumbers(data.fourQuarterNumbers || { q1: {}, q2: {}, q3: {}, q4: {} });
       setFormPaymentMethod((data.settings['Payment Methods'] || '').split(',')[0]);
-       if(!isInitialLoad && !isLoading) showToast('Data synced!', 'success');
+        if(!isInitialLoad && !isLoading) showToast('Data synced!', 'success');
     } catch (error) {
       console.error("Failed to fetch data:", error);
       const errorMessage = `Error: ${error.message}`;
@@ -104,7 +106,7 @@ export default function App() {
       if (player.Squares) {
         String(player.Squares).split(',').forEach(numStr => {
           if (numStr.trim() !== '') {
-             map.set(parseInt(numStr.trim(), 10), { name: player.Name, paid: player.Paid === 'Yes' });
+              map.set(parseInt(numStr.trim(), 10), { name: player.Name, initials: player.Initials, paid: player.Paid === 'Yes' });
           }
         });
       }
@@ -151,7 +153,7 @@ export default function App() {
   const paymentMethods = useMemo(() => (settings['Payment Methods'] || '').split(','), [settings]);
   
   // --- GENERAL FUNCTIONS --- //
-  const showToast = (message, type = 'success') => {
+  const showToast = (message, type = 'success').replace(/'/g, "\\'") => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
@@ -174,13 +176,19 @@ export default function App() {
 
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
-    if (!formName.trim() || selectedSquares.length === 0) {
-      showToast('Please enter your name and select at least one square.', 'error'); return;
+    if (!formName.trim() || !formInitials.trim() || selectedSquares.length === 0) {
+      showToast('Please enter your name, initials, and select at least one square.', 'error'); return;
     }
     setIsSubmitting(true);
     const payload = {
       action: 'claimSquare',
-      payload: { Name: formName, Squares: selectedSquares.join(','), PaymentMethod: formPaymentMethod, Cost: selectedSquares.length * settings['Cost Per Square'] }
+      payload: { 
+        Name: formName, 
+        Initials: formInitials, 
+        Squares: selectedSquares.join(','), 
+        PaymentMethod: formPaymentMethod, 
+        Cost: selectedSquares.length * settings['Cost Per Square'] 
+      }
     };
     try {
       const response = await fetch(API_BASE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
@@ -188,6 +196,7 @@ export default function App() {
       if (result.status !== 'success') throw new Error(result.message);
       showToast('Success! Squares claimed.', 'success');
       setFormName('');
+      setFormInitials('');
       setSelectedSquares([]);
       fetchData();
     } catch (error) {
@@ -387,44 +396,89 @@ export default function App() {
         </div>
 
         <main className="flex flex-col lg:flex-row gap-6">
+          {/* This is the grid container */}
           <div className="lg:w-2/3">
-            <div className="bg-gray-800 p-1 sm:p-2 rounded-xl shadow-2xl relative overflow-x-auto">
-                <div className="grid grid-cols-[auto_1fr] gap-1 sm:gap-2">
-                    {/* Away Team Label Column */}
-                    <div className="flex flex-col">
-                       <div className="aspect-square w-full"></div>
-                       {Array.from({ length: 10 }).map((_, rowIndex) => (
-                           <div key={`away-header-${rowIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
-                               {settings['Game Mode'] === '4 Quarters' ? (<div className="grid grid-cols-4 text-center text-xs sm:text-base w-full h-full"><span className="flex flex-col items-center justify-center font-bold text-orange-400 border-r border-gray-500">{fourQuarterNumbers.q1?.away?.[rowIndex]}</span><span className="flex flex-col items-center justify-center font-bold text-yellow-300 border-r border-gray-500">{fourQuarterNumbers.q2?.away?.[rowIndex]}</span><span className="flex flex-col items-center justify-center font-bold text-blue-400 border-r border-gray-500">{fourQuarterNumbers.q3?.away?.[rowIndex]}</span><span className="flex flex-col items-center justify-center font-bold text-purple-400">{fourQuarterNumbers.q4?.away?.[rowIndex]}</span></div>) : (<span className="text-lg sm:text-xl">{fullGameNumbers.away?.[rowIndex]}</span>)}
-                           </div>
-                       ))}
-                    </div>
-                    {/* Home Team Header and Main Grid */}
-                    <div className="overflow-x-auto">
-                        <div className="flex justify-center items-center gap-2 mb-1 h-[40px] sm:h-[50px]">
-                            <h3 className="text-center text-sm sm:text-base font-bold tracking-wider text-gray-300">{settings['Home Team Name']}</h3>
+            {/* Home Team Name (Above Grid) */}
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-300 mb-2 tracking-widest text-center">
+              {settings['Home Team Name']}
+            </h2>
+
+            {/* Wrapper for Side Team Name + Grid */}
+            <div className="flex items-center justify-center gap-2 sm:gap-4"> {/* Added items-center and justify-center */}
+              
+              {/* Away Team Name (Side) */}
+              <h2 className="writing-mode-v-rl rotate-180 text-xl sm:text-2xl font-bold text-gray-300 tracking-widest text-center"> {/* Removed mt-12 */}
+                {settings['Away Team Name']}
+              </h2>
+
+              {/* Main Grid - must have flex-1 to grow */}
+              <div className="flex-1 bg-gray-800 p-1 sm:p-2 rounded-xl shadow-2xl relative overflow-x-auto">
+                  <div className="grid grid-cols-11 gap-0.5 min-w-[500px] sm:min-w-full">
+                      
+                      {/* 1. Top-Left Special Corner - NOW HORIZONTAL */}
+                      <div className="relative aspect-square bg-gray-700 rounded-sm flex items-center justify-around text-[8px] sm:text-[10px] font-sans-readable p-0.5 sm:p-1 overflow-hidden">
+                        {settings['Game Mode'] === '4 Quarters' && (
+                          <>
+                            <span className="font-bold text-orange-400">Q1</span>
+                            <span className="font-bold text-yellow-300">Q2</span>
+                            <span className="font-bold text-blue-400">Q3</span>
+                            <span className="font-bold text-purple-400">F</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* 2. Home Numbers (10 cols) - NOW INDIVIDUAL SQUARES */}
+                      {Array.from({ length: 10 }).map((_, colIndex) => (
+                        <div key={`home-header-${colIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
+                          {settings['Game Mode'] === '4 Quarters' ? (
+                            // This is now a grid of 4 vertical boxes
+                            <div className="grid grid-rows-4 gap-0.5 text-center text-[10px] sm:text-base w-full h-full font-sans-readable">
+                              <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q1?.home?.[colIndex]}</span>
+                              <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers.q2?.home?.[colIndex]}</span>
+                              <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q3?.home?.[colIndex]}</span>
+                              <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q4?.home?.[colIndex]}</span>
+                            </div>
+                          ) : (
+                            <span className="text-lg sm:text-xl">{fullGameNumbers.home?.[colIndex]}</span>
+                          )}
                         </div>
-                        <div className="grid grid-cols-10 gap-0.5 min-w-[500px] sm:min-w-full">
-                            {/* Home numbers */}
-                            {Array.from({ length: 10 }).map((_, colIndex) => (
-                                <div key={`home-header-${colIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
-                                    {settings['Game Mode'] === '4 Quarters' ? (<div className="grid grid-rows-4 text-center text-[10px] sm:text-base w-full h-full"><span className="flex items-center justify-center font-bold text-orange-400 border-b border-gray-500">{fourQuarterNumbers.q1?.home?.[colIndex]}</span><span className="flex items-center justify-center font-bold text-yellow-300 border-b border-gray-500">{fourQuarterNumbers.q2?.home?.[colIndex]}</span><span className="flex items-center justify-center font-bold text-blue-400 border-b border-gray-500">{fourQuarterNumbers.q3?.home?.[colIndex]}</span><span className="flex items-center justify-center font-bold text-purple-400">{fourQuarterNumbers.q4?.home?.[colIndex]}</span></div>) : (<span className="text-lg sm:text-xl">{fullGameNumbers.home?.[colIndex]}</span>)}
-                                </div>
-                            ))}
-                            {/* Squares */}
-                            {Array.from({ length: 100 }).map((_, i) => {
-                                const squareNumber = i + 1;
-                                const claimed = claimedSquaresMap.get(squareNumber);
-                                const isSelected = selectedSquares.includes(squareNumber);
-                                const winnerClasses = []; const winnerBadges = [];
-                                Object.entries(winningSquares).forEach(([quarter, num]) => { if(num === squareNumber) { if (quarter === 'Q1') { winnerClasses.push('border-orange-500'); winnerBadges.push({q: 'Q1', c: 'bg-orange-500'}); } if (quarter === 'Q2') { winnerClasses.push('border-yellow-400'); winnerBadges.push({q: 'Q2', c: 'bg-yellow-400'}); } if (quarter === 'Q3') { winnerClasses.push('border-blue-500'); winnerBadges.push({q: 'Q3', c: 'bg-blue-500'}); } if (quarter === 'Q4') { winnerClasses.push('border-purple-500'); winnerBadges.push({q: 'F', c: 'bg-purple-500'}); } } });
-                                const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-4' : isSelected ? 'border-4 border-green-500' : claimed && !claimed.paid ? 'border-2 border-red-500' : 'border-2 border-gray-600';
-                                return (<div key={squareNumber} onClick={() => handleSquareClick(squareNumber)} className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${claimed ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'}`}><span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px] text-gray-500 font-sans-readable">{squareNumber}</span>{claimed && <span className="text-[9px] sm:text-sm font-semibold text-center break-all px-0.5 font-sans-readable">{claimed.name}</span>}{winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[8px] font-bold px-1 rounded-full text-gray-900 ${b.c}`}>{b.q}</span>))}</div>}</div>);
-                            })}
-                        </div>
-                    </div>
-                </div>
+                      ))}
+
+                      {/* 3. Away Numbers + 100 Squares */}
+                      {Array.from({ length: 10 }).map((_, rowIndex) => (
+                          <Fragment key={`row-${rowIndex}`}>
+                              {/* Away Number Header - NOW HORIZONTAL INDIVIDUAL SQUARES */}
+                              <div className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
+                                  {settings['Game Mode'] === '4 Quarters' ? (
+                                    // This is now a grid of 4 horizontal boxes
+                                    <div className="grid grid-cols-4 gap-0.5 text-center text-[10px] sm:text-base w-full h-full font-sans-readable">
+                                      <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q1?.away?.[rowIndex]}</span>
+                                      <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers.q2?.away?.[rowIndex]}</span>
+                                      <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q3?.away?.[rowIndex]}</span>
+                                      <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q4?.away?.[rowIndex]}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-lg sm:text-xl">{fullGameNumbers.away?.[rowIndex]}</span>
+                                  )}
+                              </div>
+
+                              {/* The 10 Squares for this row */}
+                              {Array.from({ length: 10 }).map((_, colIndex) => {
+                                  const squareNumber = rowIndex * 10 + colIndex + 1;
+                                  const claimed = claimedSquaresMap.get(squareNumber);
+                                  const isSelected = selectedSquares.includes(squareNumber);
+                                  const winnerClasses = []; const winnerBadges = [];
+                                  Object.entries(winningSquares).forEach(([quarter, num]) => { if(num === squareNumber) { if (quarter === 'Q1') { winnerClasses.push('border-orange-500'); winnerBadges.push({q: 'Q1', c: 'bg-orange-500'}); } if (quarter === 'Q2') { winnerClasses.push('border-yellow-400'); winnerBadges.push({q: 'Q2', c: 'bg-yellow-400'}); } if (quarter === 'Q3') { winnerClasses.push('border-blue-500'); winnerBadges.push({q: 'Q3', c: 'bg-blue-500'}); } if (quarter === 'Q4') { winnerClasses.push('border-purple-500'); winnerBadges.push({q: 'F', c: 'bg-purple-500'}); } } });
+                                  const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-4' : isSelected ? 'border-4 border-green-500' : claimed && !claimed.paid ? 'border-2 border-red-500' : 'border-2 border-gray-600';
+                                  return (<div key={squareNumber} onClick={() => handleSquareClick(squareNumber)} className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${claimed ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'}`}><span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px] text-gray-500 font-sans-readable">{squareNumber}</span>{claimed && <span className="text-[9px] sm:text-sm font-semibold text-center break-all px-0.5 font-sans-readable">{claimed.initials || claimed.name}</span>}{winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[8px] font-bold px-1 rounded-full text-gray-900 ${b.c}`}>{b.q}</span>))}</div>}</div>);
+                              })}
+                          </Fragment>
+                      ))}
+                  </div>
+              </div>
             </div>
+
+            {/* This is the existing legend, no changes needed here */}
             <div className="mt-4 bg-gray-800 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm font-sans-readable">
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-gray-600 bg-gray-900"></div><span>Available</span></div>
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-red-500 bg-gray-700"></div><span>Claimed (Unpaid)</span></div>
@@ -434,10 +488,11 @@ export default function App() {
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-purple-500 bg-gray-700"></div><span>Final Winner</span></div>
             </div>
           </div>
-          <div className="lg:w-2/3 bg-gray-800 p-6 rounded-xl shadow-lg font-sans-readable">
+          <div className="lg:w-1/3 bg-gray-800 p-6 rounded-xl shadow-lg font-sans-readable">
             <h2 className="text-2xl font-bold mb-4 text-center text-yellow-400 font-russo">Claim Your Squares</h2>
             <form onSubmit={handleClaimSubmit}>
               <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="name">Your Name</label><input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div>
+              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="initials">Your Initials (Max 3)</label><input type="text" id="initials" value={formInitials} onChange={(e) => setFormInitials(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div>
               <div className="mb-4"><label className="block text-gray-400 mb-2">Selected Squares ({selectedSquares.length})</label><div className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 min-h-[44px] break-words">{selectedSquares.length > 0 ? selectedSquares.sort((a,b) => a - b).join(', ') : <span className="text-gray-500">Click squares on the grid</span>}</div></div>
               <div className="flex gap-2 mb-4"><input type="number" placeholder="#" value={numToRandomize} onChange={e => setNumToRandomize(e.target.value)} className="w-1/3 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400 text-center" min="1"/><button type="button" onClick={handleRandomizeSelection} className="w-2/3 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 font-russo"><Dice5Icon/> Pick Random</button></div>
               <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="payment">Payment Method</label><select id="payment" value={formPaymentMethod} onChange={e => setFormPaymentMethod(e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400">{paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
@@ -458,11 +513,11 @@ export default function App() {
             <button onClick={() => setShowAdminPanel(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button><h2 className="text-2xl font-bold mb-4 text-center text-yellow-400 font-russo">Admin Panel</h2>
             {!isAdmin ? (<form onSubmit={handleAdminLogin} className="flex flex-col items-center"><label className="text-gray-400 mb-2" htmlFor="admin-pass">Enter Admin Password</label><input type="password" id="admin-pass" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 mb-4 w-64 focus:outline-none focus:border-yellow-400"/><button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg font-russo">Login</button></form>)
             : (<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><UserIcon/> Player Payments</h3><div className="space-y-2 max-h-96 overflow-y-auto pr-2">{players.map(player => (<div key={player.Name} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"><div><p className="font-bold">{player.Name}</p><p className="text-sm text-gray-400">{String(player.Squares).split(',').length} squares - ${player.Cost} ({player.PaymentMethod})</p></div><div className="flex items-center gap-3"><button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : 'text-gray-400 hover:bg-green-600'}`}><CheckCircleIcon/></button><button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : 'text-gray-400 hover:bg-red-600'}`}><XCircleIcon/></button><button onClick={() => handleDeletePlayer(player.Name)} className="p-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white"><Trash2Icon/></button></div></div>))}</div></div>
+                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><UserIcon/> Player Payments</h3><div className="space-y-2 max-h-96 overflow-y-auto pr-2">{players.map(player => (<div key={player.Name} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"><div><p className="font-bold">{player.Name} ({player.Initials})</p><p className="text-sm text-gray-400">{String(player.Squares).split(',').length} squares - ${player.Cost} ({player.PaymentMethod})</p></div><div className="flex items-center gap-3"><button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : 'text-gray-400 hover:bg-green-600'}`}><CheckCircleIcon/></button><button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : 'text-gray-400 hover:bg-red-600'}`}><XCircleIcon/></button><button onClick={() => handleDeletePlayer(player.Name)} className="p-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white"><Trash2Icon/></button></div></div>))}</div></div>
                 <div className="space-y-6">
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><SlidersIcon/> Game Settings</h3><div className="flex gap-4"><select value={settings['Game Mode']} onChange={handleGameModeChange} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"><option value="4 Quarters">4 Quarters</option><option value="Full Game">Full Game</option></select></div></div>
+                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><SlidersIcon/> Game Settings</h3><div className="flex gap-4"><select value={settings['Game Mode']} onChange={handleGameModeChange} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"><option value="4 Quarters">4 Quarters</Aption><option value="Full Game">Full Game</option></select></div></div>
                 <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><Dice5Icon/> Randomize Numbers</h3><div className="flex gap-4"><button onClick={() => handleRandomizeNumbers('Full Game')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for full game'} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">Full Game</button><button onClick={() => handleRandomizeNumbers('4 Quarters')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for 4 quarters'} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">4 Quarters</button></div></div>
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><TrophyIcon/> Enter & Update Scores</h3><div className="space-y-2">{localScores.map(score => (<div key={score.Quarter} className="grid grid-cols-[auto,1fr,1fr,auto] items-center gap-2"><label className="font-bold">{score.Quarter === 'Q4' ? 'Final' : score.Quarter}</label><input type="number" placeholder={settings['Away Team Name']} value={score['Away Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Away Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><input type="number" placeholder={settings['Home Team Name']} value={score['Home Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Home Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><button onClick={() => handleScoreUpdate(score.Quarter)} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Save</button></div>))}</div></div>
+                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><TrophyIcon/> Enter & Update Scores</h3><div className="space-y-2">{localScores.map(score => (<div key={score.Quarter} className="grid grid-cols-[auto,1fr,1fr,auto] items-center gap-2"><label className="font-bold">{score.Quarter === 'Q4' ? 'Final' : score.Quarter}</label><input type="number" placeholder={settings['Away Team Name']} value={score['Away Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Away Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><input type="number" placeholder={settings['Home Score']} value={score['Home Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Home Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><button onClick={() => handleScoreUpdate(score.Quarter)} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Save</button></div>))}</div></div>
                 <div className="border-t border-gray-700 pt-4"><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><AlertTriangleIcon className="text-red-500"/> New Game</h3><button onClick={handleNewGame} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg font-russo">Clear All Data</button><p className="text-xs text-gray-400 mt-2">Deletes all players, scores, and numbers. Settings will be kept.</p></div>
             </div></div>)}
         </div></div>)}
