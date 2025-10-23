@@ -233,6 +233,7 @@ export default function App() {
 
   // --- ADMIN PANEL LOCAL SETTINGS RESET --- //
   useEffect(() => {
+    // Only reset localSettings when the panel becomes visible AND admin is logged in
     if (showAdminPanel && isAdmin) {
       const currentSettings = { ...settings }; 
       const cost = Number(currentSettings['Cost Per Square']) || 0;
@@ -252,8 +253,9 @@ export default function App() {
        });
        setLocalSettings(currentSettings);
     }
-     // Removed settings from dependency array to prevent unwanted resets
-  }, [showAdminPanel, isAdmin]); 
+    // Dependency array ONLY includes showAdminPanel and isAdmin
+    // This ensures it runs *only* when the panel visibility or admin status changes
+  }, [showAdminPanel, isAdmin, settings]); // Keep settings here to ensure reset uses latest saved data
     
 
 
@@ -669,7 +671,7 @@ export default function App() {
 
         postAdminAction('updateSettings', finalSettingsToSave);
      }
-  }, [localSettings, postAdminAction, showToast]); // Dependencies
+  }, [localSettings, postAdminAction, showToast, totalPot]); // Added totalPot dependency
 
   // Handler for editing player form input changes
   const handleEditingPlayerChange = useCallback((key, value) => {
@@ -1283,6 +1285,12 @@ export default function App() {
            : toast.type === 'warning' ? 'bg-yellow-400 text-black' 
            : theme === 'light' ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-green-600 text-white'}`}
           ><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
+          
+        {/* --- NEW Footer Credit --- */}
+        <footer className={`text-center mt-8 text-xs ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'} font-sans-readable`}>
+             Created by Cam Quinci
+        </footer>
+        {/* --- END Footer Credit --- */}
       </div>
     </div>
   );
