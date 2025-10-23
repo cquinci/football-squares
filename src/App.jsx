@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, Fragment, useRef } from 'react'; // Added useRef
 
 // --- CONFIGURATION --- //
 // UPDATED API URL:
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyvCAJZGa76qQ7ipJFqmmF4tH2GUXJuP7p4H6pQ08YcH0LXpfvtO1gZhqPwLVU7r0B4kQ/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzcOHZmaty10-PocD2u2pf5nk9GH3T0QzB30Lc13tFT9sexw9WrypJgZ_67BVHeE0xWSA/exec';
 
 // --- HELPER ICONS --- //
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
@@ -16,6 +16,11 @@ const TagIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height=
 const Trash2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
 const AlertTriangleIcon = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
 const SlidersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>;
+const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
+const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>;
+const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>;
+const DollarSignIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>;
+const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
 
 
 // --- CORE APPLICATION --- //
@@ -42,47 +47,142 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // Only for visual indicator
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [localScores, setLocalScores] = useState([]);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
 
-  // --- DATA FETCHING & FONT LOADING --- //
+  // Admin Panel State
+  const [localSettings, setLocalSettings] = useState({}); 
+  const [editingPlayer, setEditingPlayer] = useState(null); 
+
+  // --- REFS --- //
+  const isFetchingRef = useRef(false); // Ref to prevent simultaneous fetches
+  const toastTimerRef = useRef(null); // Ref to manage toast timeout
+
+  // --- DERIVED STATE & CALCULATIONS --- //
+  const totalPot = useMemo(() => {
+    const cost = Number(isAdmin ? localSettings['Cost Per Square'] : settings['Cost Per Square']) || 0;
+    return cost * 100; 
+  }, [settings, localSettings, isAdmin]);
+
+  const calculatePayoutAmount = useCallback((percentKey) => {
+    const percent = Number(localSettings[percentKey]) || 0;
+    const calculated = totalPot > 0 ? Math.round((percent / 100) * totalPot) : 0;
+    return calculated;
+  }, [localSettings, totalPot]);
+
+
+  // --- TOAST FUNCTION --- // 
+  const showToast = useCallback((message, type = 'success') => {
+    // Clear existing timer if any
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    const displayMessage = typeof message === 'string' ? message : JSON.stringify(message);
+    setToast({ show: true, message: displayMessage, type });
+    // Set new timer
+    toastTimerRef.current = setTimeout(() => {
+      setToast(prev => prev.show ? { show: false, message: '', type: 'success' } : prev); 
+    }, 3000);
+  }, []); // No dependencies needed
+
+
+  // --- DATA FETCHING --- //
+  // Separate fetchData from useEffect that calls it initially
   const fetchData = useCallback(async (isInitialLoad = false) => {
-    if(!isRefreshing) setIsRefreshing(true);
-    if(!isInitialLoad && !isLoading) showToast('Syncing with Google Sheet...', 'info');
+    // Prevent simultaneous fetches
+    if (isFetchingRef.current) {
+        return;
+    }
+    isFetchingRef.current = true; 
+    setIsRefreshing(true); // Indicate visual refresh start
+    if (!isInitialLoad) showToast('Syncing with Google Sheet...', 'info'); 
+
     try {
       const response = await fetch(API_BASE_URL);
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+      if (!response.ok) {
+        let errorText = `Network response was not ok: ${response.statusText} (${response.status})`;
+        try { const text = await response.text(); if (text.includes('<title>Error</title>') || text.includes('Google Apps Script')) errorText = "Backend script error. Check Google Apps Script logs."; } catch(e) {/* Ignore */}
+        throw new Error(errorText);
+      }
       
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !(contentType.includes("application/json") || contentType.includes("text/javascript"))) {
+         const textResponse = await response.text();
+         console.error("Non-JSON response received:", textResponse);
+         throw new Error("Received non-JSON response from server. Check Apps Script logs.");
+      }
+      const data = await response.json();
+      
+      if (data.error) {
+        if (data.error.includes("Spreadsheet ID")) throw new Error("Spreadsheet ID Error"); 
+        if (data.error.includes("Too many simultaneous invocations")) throw new Error("Too many simultaneous invocations");
+        throw new Error(data.error); 
+      }
+      
+      const fetchedSettings = data.settings || {};
       setPlayers(data.players || []);
-      setSettings(data.settings || {});
+      setSettings(fetchedSettings); 
+
+      // Initialize localSettings based on fetchedSettings ONLY on initial load
+      if (isInitialLoad) {
+        const initialLocalSettings = { ...fetchedSettings };
+        const cost = Number(fetchedSettings['Cost Per Square']) || 0;
+        const currentTotalPot = cost * 100;
+        ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
+            const percentKey = `${key} Percent`;
+            const existingPercent = fetchedSettings[percentKey];
+            if (existingPercent !== undefined && existingPercent !== '') {
+                initialLocalSettings[percentKey] = Number(existingPercent) || 0;
+                initialLocalSettings[key] = Math.round((initialLocalSettings[percentKey] / 100) * currentTotalPot);
+            }
+            else {
+                const amount = Number(initialLocalSettings[key]) || 0;
+                initialLocalSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
+                initialLocalSettings[key] = amount;
+            }
+        });
+        setLocalSettings(initialLocalSettings); 
+      }
+      
       setScores(data.scores || []);
-      setLocalScores(data.scores || []);
+      setLocalScores(data.scores || []); 
       setFullGameNumbers(data.fullGameNumbers || { home: [], away: [] });
       setFourQuarterNumbers(data.fourQuarterNumbers || { q1: {}, q2: {}, q3: {}, q4: {} });
-      setFormPaymentMethod((data.settings['Payment Methods'] || '').split(',')[0]);
-        if(!isInitialLoad && !isLoading) showToast('Data synced!', 'success');
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      const errorMessage = `Error: ${error.message}`;
-      if (error.message.includes("openById")) {
-          const detailedError = "<b>Backend Error:</b> Your Spreadsheet ID is missing or incorrect in the Google Apps Script. Please update it and re-deploy.";
-          if(isLoading) setStartupError(detailedError);
-          showToast(detailedError, 'error');
-      } else {
-          if(isLoading) setStartupError(errorMessage);
-          showToast(errorMessage, 'error');
+      
+      const paymentMethodsString = fetchedSettings?.['Payment Methods'] || '';
+      const currentMethods = paymentMethodsString.split(',').map(m => m.trim()).filter(Boolean);
+      if (!formPaymentMethod || !currentMethods.includes(formPaymentMethod)) {
+           setFormPaymentMethod(currentMethods[0] || ''); 
       }
-    } finally {
-      if(isInitialLoad) setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [isLoading, isRefreshing]);
 
+      if (!isInitialLoad) showToast('Data synced!', 'success'); 
+
+    } catch (error) {
+      console.error("Failed to fetch data:", error); 
+      let errorMessage = `Error fetching data: ${error.message}`;
+      if (error.message === "Spreadsheet ID Error") errorMessage = "<b>Backend Error:</b> Your Spreadsheet ID is missing or incorrect in the Google Apps Script. Please update it and re-deploy.";
+      else if (error.message.includes("Network response") || error.message.includes("Failed to fetch")) errorMessage = "<b>Network Error:</b> Could not connect to the Google Sheet backend. Check your internet connection or the Apps Script URL.";
+      else if (error.message.includes("Too many simultaneous invocations")) errorMessage = "<b>Backend Busy:</b> The server is busy, please wait a moment and try syncing again.";
+      else if (error.message.includes("non-JSON response") || error.message.includes("Backend script error")) errorMessage = "<b>Backend Error:</b> Received an unexpected response from the server. Check Google Apps Script logs for errors.";
+      
+      if (isInitialLoad) setStartupError(errorMessage); 
+      showToast(errorMessage, 'error'); 
+
+    } finally {
+      if (isInitialLoad) setIsLoading(false); 
+      setIsRefreshing(false); 
+      isFetchingRef.current = false; // Mark fetch as completed
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE_URL, showToast, formPaymentMethod]); // Dependencies for fetchData
+
+
+  // --- FONT LOADING & INITIAL FETCH --- //
   useEffect(() => {
+    // Add Fonts & Styles
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Russo+One&display=swap';
     fontLink.rel = 'stylesheet';
@@ -94,55 +194,130 @@ export default function App() {
       @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       .animate-roll { animation: roll 0.5s linear infinite; }
       .writing-mode-v-rl { writing-mode: vertical-rl; }
+      .no-select { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+      .grid-cell-min-width { min-width: 1.5rem; } 
     `;
     document.head.appendChild(style);
-    fetchData(true);
-  }, []);
+    
+    // Initial Fetch
+    fetchData(true); 
+
+    // Cleanup toast timer on unmount
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, [fetchData]); // Run only on mount (fetchData is stable)
+
+
+  // --- ADMIN PANEL LOCAL SETTINGS RESET --- //
+  useEffect(() => {
+    if (showAdminPanel && isAdmin) {
+      const currentSettings = { ...settings }; 
+      const cost = Number(currentSettings['Cost Per Square']) || 0;
+      const currentTotalPot = cost * 100;
+       ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
+           const percentKey = `${key} Percent`;
+           const existingPercent = currentSettings[percentKey];
+           if (existingPercent !== undefined && existingPercent !== '') {
+               currentSettings[percentKey] = Number(existingPercent) || 0;
+               currentSettings[key] = Math.round((currentSettings[percentKey] / 100) * currentTotalPot);
+           }
+           else {
+               const amount = Number(currentSettings[key]) || 0;
+               currentSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
+               currentSettings[key] = amount;
+           }
+       });
+       setLocalSettings(currentSettings);
+    }
+     // --- MODIFIED: Removed settings from dependency array ---
+  }, [showAdminPanel, isAdmin]); 
+    // --- END MODIFICATION ---
+
 
   // --- DERIVED STATE & MEMOIZATION --- //
   const claimedSquaresMap = useMemo(() => {
     const map = new Map();
-    players.forEach(player => {
-      if (player.Squares) {
-        String(player.Squares).split(',').forEach(numStr => {
-          if (numStr.trim() !== '') {
-              map.set(parseInt(numStr.trim(), 10), { name: player.Name, initials: player.Initials, paid: player.Paid === 'Yes' });
-          }
+    if (Array.isArray(players)) { 
+        players.forEach(player => {
+        if (player && player.Squares) {
+            String(player.Squares).split(',').forEach(numStr => {
+            const trimmedNumStr = numStr.trim();
+            if (trimmedNumStr !== '') {
+                const num = parseInt(trimmedNumStr, 10);
+                if (!isNaN(num)) {
+                    map.set(num, { 
+                        name: player.Name || '', 
+                        initials: player.Initials || '', 
+                        paid: player.Paid === 'Yes' 
+                    });
+                }
+            }
+            });
+        }
         });
-      }
-    });
+    }
     return map;
   }, [players]);
 
+  const adminStats = useMemo(() => {
+    const totalClaimed = claimedSquaresMap.size;
+    const totalAvailable = 100 - totalClaimed;
+    const validPlayers = Array.isArray(players) ? players.filter(p => p) : []; 
+    const totalPaid = validPlayers.filter(p => p.Paid === 'Yes').length; 
+    const totalUnpaid = validPlayers.filter(p => p.Paid !== 'Yes').length; 
+    return { totalClaimed, totalAvailable, totalPaid, totalUnpaid };
+  }, [claimedSquaresMap, players]);
+
   const winningSquares = useMemo(() => {
     const winners = {};
-    if (!scores || !settings) {
+    if (!Array.isArray(scores) || !settings) { 
       return winners;
     }
 
     scores.forEach(score => {
+        if (!score || !score.Quarter) return; 
+
         const { Quarter, 'Home Score': homeScore, 'Away Score': awayScore } = score;
 
-        if (homeScore === '' || awayScore === '' || homeScore === undefined || awayScore === undefined) {
-            return; // Skip if score is incomplete
-        }
+        const isHomeScoreValid = homeScore === '' || (homeScore !== undefined && homeScore !== null && !isNaN(Number(homeScore)));
+        const isAwayScoreValid = awayScore === '' || (awayScore !== undefined && awayScore !== null && !isNaN(Number(awayScore)));
 
-        const homeDigit = parseInt(String(homeScore).slice(-1), 10);
-        const awayDigit = parseInt(String(awayScore).slice(-1), 10);
+        if (!isHomeScoreValid || !isAwayScoreValid) {
+            console.warn("Invalid score found:", score); 
+            return; 
+        }
+        
+        const homeDigit = homeScore === '' ? null : parseInt(String(homeScore).slice(-1), 10);
+        const awayDigit = awayScore === '' ? null : parseInt(String(awayScore).slice(-1), 10);
+
+        if (homeDigit === null || isNaN(homeDigit) || awayDigit === null || isNaN(awayDigit)) {
+             return; 
+        }
 
         let numbers;
-        if (settings['Game Mode'] === 'Full Game') {
+        const gameMode = settings?.['Game Mode']; 
+
+        if (gameMode === 'Full Game') {
             numbers = fullGameNumbers;
-        } else { // 4 Quarters Mode
-            numbers = fourQuarterNumbers[Quarter.toLowerCase()];
+        } else if (gameMode === '4 Quarters') { 
+             const quarterKey = String(Quarter).toLowerCase(); 
+             if (fourQuarterNumbers && fourQuarterNumbers[quarterKey]) { 
+                 numbers = fourQuarterNumbers[quarterKey];
+             } else {
+                 console.warn(`Number data for quarter ${quarterKey} not found.`);
+                 numbers = null; 
+             }
+        } else {
+             numbers = null; 
         }
 
-        if (numbers && numbers.home && numbers.home.length > 0 && numbers.away && numbers.away.length > 0) {
+        if (numbers && numbers.home && Array.isArray(numbers.home) && numbers.home.length > 0 && 
+            numbers.away && Array.isArray(numbers.away) && numbers.away.length > 0) {
+            
             const homeIndex = numbers.home.indexOf(homeDigit);
             const awayIndex = numbers.away.indexOf(awayDigit);
 
             if (homeIndex !== -1 && awayIndex !== -1) {
-                winners[Quarter] = awayIndex * 10 + homeIndex + 1;
+                 winners[Quarter] = awayIndex * 10 + homeIndex + 1;
             }
         }
     });
@@ -150,37 +325,38 @@ export default function App() {
     return winners;
   }, [scores, settings, fullGameNumbers, fourQuarterNumbers]);
   
-  const paymentMethods = useMemo(() => (settings['Payment Methods'] || '').split(','), [settings]);
+  const paymentMethods = useMemo(() => (settings?.['Payment Methods'] || '').split(',').map(m => m.trim()).filter(Boolean), [settings]); 
   
   // --- GENERAL FUNCTIONS --- //
-  // Removed .replace() from function definition
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-  };
   
   const handleSquareClick = useCallback((squareNumber) => {
     if (claimedSquaresMap.has(squareNumber)) {
       showToast('This square is already taken.', 'error'); return;
     }
     setSelectedSquares(prev => prev.includes(squareNumber) ? prev.filter(s => s !== squareNumber) : [...prev, squareNumber]);
-  }, [claimedSquaresMap]);
+  }, [claimedSquaresMap, showToast]); 
 
-  const handleRandomizeSelection = () => {
+  const handleRandomizeSelection = useCallback(() => { 
     const availableSquares = Array.from({ length: 100 }, (_, i) => i + 1).filter(num => !claimedSquaresMap.has(num));
     const count = parseInt(numToRandomize, 10);
     if (isNaN(count) || count <= 0) { showToast('Please enter a valid number of squares.', 'error'); return; }
     if (availableSquares.length < count) { showToast(`Only ${availableSquares.length} squares are available.`, 'error'); return; }
-    setSelectedSquares(availableSquares.sort(() => 0.5 - Math.random()).slice(0, count));
-    showToast(`${count} random square(s) selected.`, 'info');
-  };
+    
+    const shuffledAvailable = availableSquares.sort(() => 0.5 - Math.random());
+    setSelectedSquares(shuffledAvailable.slice(0, count));
 
-  const handleClaimSubmit = async (e) => {
+    showToast(`${count} random square(s) selected.`, 'info');
+  }, [numToRandomize, claimedSquaresMap, showToast]); 
+
+  const handleClaimSubmit = useCallback(async (e) => { 
     e.preventDefault();
     if (!formName.trim() || !formInitials.trim() || selectedSquares.length === 0) {
       showToast('Please enter your name, initials, and select at least one square.', 'error'); return;
     }
-    setIsSubmitting(true);
+    const costPerSquareValue = Number(settings?.['Cost Per Square']) || 0;
+    const totalCost = selectedSquares.length * costPerSquareValue;
+
+    setIsSubmitting(true); 
     const payload = {
       action: 'claimSquare',
       payload: { 
@@ -188,140 +364,351 @@ export default function App() {
         Initials: formInitials, 
         Squares: selectedSquares.join(','), 
         PaymentMethod: formPaymentMethod, 
-        Cost: selectedSquares.length * settings['Cost Per Square'] 
+        Cost: totalCost 
       }
     };
     try {
-      const response = await fetch(API_BASE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const response = await fetch(API_BASE_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain' }, 
+          body: JSON.stringify(payload) 
+      });
+      if (!response.ok) {
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        try { const errorResult = await response.json(); errorMsg = errorResult?.message || errorMsg; } catch (parseError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
       const result = await response.json();
-      if (result.status !== 'success') throw new Error(result.message);
+      if (result.status !== 'success') throw new Error(result.message || 'Unknown error claiming squares.');
       showToast('Success! Squares claimed.', 'success');
       setFormName('');
       setFormInitials('');
       setSelectedSquares([]);
-      fetchData();
+      await fetchData(false); 
     } catch (error) {
       console.error("Failed to claim squares:", error);
-      showToast(`Error: ${error.message}`, 'error');
+      showToast(`Error claiming squares: ${error.message}`, 'error');
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); 
     }
-  };
+  }, [formName, formInitials, selectedSquares, settings, formPaymentMethod, API_BASE_URL, fetchData, showToast]); 
 
-  const handleAdminLogin = (e) => {
+
+  const handleAdminLogin = useCallback((e) => { 
     e.preventDefault();
-    if(adminPassword === settings['Admin Password']) {
+    if(adminPassword === settings?.['Admin Password']) {
       setIsAdmin(true);
-      setShowAdminPanel(true);
+      setShowAdminPanel(true); 
       showToast('Admin access granted.', 'success');
     } else {
       showToast('Incorrect password.', 'error');
     }
-    setAdminPassword('');
-  };
+    setAdminPassword(''); 
+  }, [adminPassword, settings, showToast]); 
 
   // --- ADMIN ACTION FUNCTIONS --- //
-  const postAdminAction = async (action, payload) => {
+  const postAdminAction = useCallback(async (action, payload) => { 
+    if (isFetchingRef.current) {
+        showToast("Sync in progress, please wait...", "warning");
+        return false; 
+    }
+    isFetchingRef.current = true; 
+
     try {
-      showToast('Sending admin command...', 'info');
+      showToast(`Processing: ${action}...`, 'info'); 
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({ action, payload }),
       });
-      const result = await response.json();
-      if (result.status !== 'success') throw new Error(result.message);
-      showToast(`Success: ${result.message}`, 'success');
-      fetchData();
-      return true;
+       
+      if (!response.ok) {
+         let errorMsg = `Network error: ${response.status} ${response.statusText}`;
+         try { const errorResult = await response.json(); errorMsg = errorResult?.message || errorMsg; } catch (parseError) { /* Ignore */ }
+         throw new Error(errorMsg);
+       }
+
+       let result;
+       try { result = await response.json(); } catch (jsonError) { throw new Error(`Failed to parse response from server for action '${action}'.`); }
+       
+      if (result.status !== 'success') { throw new Error(result.message || `Backend action '${action}' failed.`); }
+
+      showToast(`Success: ${result.message || action + ' completed.'}`, 'success');
+      
+      // Release ref BEFORE fetching data to allow the fetch
+      isFetchingRef.current = false; 
+      await fetchData(false); 
+      
+      // Update main settings and localSettings state AFTER successful fetch for settings update
+      if (action === 'updateSettings') {
+        setSettings(payload); 
+        setLocalSettings(payload); // Ensure local form reflects saved state
+      }
+      
+      return true; 
+
     } catch (error) {
       console.error(`Admin action "${action}" failed:`, error);
-      if (error.message.includes("Missing required data for claiming a square") || error.message.includes("Invalid action")) {
-          showToast("Error: Backend script outdated. Please update Google Apps Script and re-deploy.", 'error');
-      } else {
-          showToast(`Error: ${error.message}`, 'error');
+      let userErrorMessage = `Error during action '${action}': ${error.message}`;
+      if (error.message.includes("Missing required data") || error.message.includes("Invalid action") || error.message.includes("outdated")) {
+          userErrorMessage = "Error: Backend script might be outdated or missing data. Please check/update Google Apps Script and re-deploy.";
+      } else if (error.message.includes("not found")) {
+           userErrorMessage = `Warning: ${error.message}`; 
       }
+      showToast(userErrorMessage, error.message.includes("not found") ? 'warning' : 'error');
+      isFetchingRef.current = false; // Ensure ref is reset on error
       return false;
+    } finally {
+         // Ensure ref is always reset in case of unexpected errors
+         isFetchingRef.current = false; 
     }
-  };
+  }, [API_BASE_URL, fetchData, showToast]); // Dependencies
 
-  const handleMarkAsPaid = (playerName, status) => {
+
+  const handleMarkAsPaid = useCallback((playerName, status) => { 
+    if (!playerName) {
+        showToast("Cannot update payment status: Player name is missing.", "error");
+        return;
+    }
     postAdminAction('markAsPaid', { playerName, status });
-  };
-  
-  const handleRandomizeNumbers = async (mode) => {
+  }, [postAdminAction, showToast]); 
+
+  const handleRandomizeNumbers = useCallback(async (mode) => { 
     if (claimedSquaresMap.size < 100) {
         showToast('All 100 squares must be claimed before randomizing.', 'error');
         return;
     }
-    setIsRandomizing(true);
-    await postAdminAction('randomizeNumbers', { mode });
-    setIsRandomizing(false);
-  };
-
-  const handleLocalScoreChange = (quarter, team, value) => {
-    setLocalScores(prevScores => prevScores.map(s => 
-      s.Quarter === quarter ? { ...s, [team]: value } : s
-    ));
-  };
+     setConfirmModal({
+        isOpen: true,
+        title: `Randomize ${mode}?`,
+        message: 'Are you sure you want to randomize the numbers? This will overwrite existing numbers.',
+        onConfirm: async () => {
+            setIsRandomizing(true); 
+            const success = await postAdminAction('randomizeNumbers', { mode });
+            setIsRandomizing(false); 
+            if (!success) {
+                 showToast(`Failed to randomize numbers for ${mode}. Check logs or try again.`, 'error');
+            }
+        },
+         onCancel: () => {} 
+    });
+  }, [claimedSquaresMap.size, postAdminAction, showToast]); 
   
-  const handleScoreUpdate = (quarter) => {
-    const scoreToUpdate = localScores.find(s => s.Quarter === quarter);
+  const handleLocalScoreChange = useCallback((quarter, team, value) => { 
+    if (value === '' || /^\d+$/.test(value)) {
+        setLocalScores(prevScores => prevScores.map(s => 
+          s && s.Quarter === quarter ? { ...s, [team]: value } : s 
+        ));
+    } else {
+        showToast("Please enter numbers only for scores.", "warning");
+    }
+  }, [showToast]); 
+
+  const handleScoreUpdate = useCallback((quarter) => { 
+    const scoreToUpdate = localScores.find(s => s && s.Quarter === quarter); 
     if (scoreToUpdate) {
+      const homeScoreValue = scoreToUpdate['Home Score'] === '' ? '' : Number(scoreToUpdate['Home Score']);
+      const awayScoreValue = scoreToUpdate['Away Score'] === '' ? '' : Number(scoreToUpdate['Away Score']);
+
+       if ((scoreToUpdate['Home Score'] !== '' && isNaN(homeScoreValue)) || 
+           (scoreToUpdate['Away Score'] !== '' && isNaN(awayScoreValue))) {
+           showToast('Invalid score entered. Please enter numbers only.', 'error');
+           return;
+       }
+
       postAdminAction('updateScore', { 
         quarter, 
-        homeScore: scoreToUpdate['Home Score'], 
-        awayScore: scoreToUpdate['Away Score'] 
+        homeScore: homeScoreValue, 
+        awayScore: awayScoreValue 
       });
+    } else {
+         showToast(`Could not find score data for ${quarter} to update.`, 'error');
     }
-  };
-  
-  const handleDeletePlayer = (playerName) => {
+  }, [localScores, postAdminAction, showToast]); 
+
+  const handleDeletePlayer = useCallback((playerName) => { 
+    if (!playerName) {
+        showToast("Cannot delete player: Name is missing.", "error");
+        return;
+    }
     setConfirmModal({
         isOpen: true,
         title: `Delete ${playerName}?`,
         message: 'This will permanently remove the player and their squares. This action cannot be undone.',
         onConfirm: () => postAdminAction('deletePlayer', { playerName }),
+        onCancel: () => {} 
     });
-  };
+  }, [postAdminAction, showToast]); 
 
-  const handleNewGame = () => {
+  const handleNewGame = useCallback(() => { 
     setConfirmModal({
         isOpen: true,
         title: 'Start a New Game?',
-        message: 'This will delete ALL players, scores, and randomized numbers. This action is permanent and cannot be undone.',
+        message: 'This will delete ALL players, scores, and randomized numbers. Settings will be kept. This action is permanent and cannot be undone.',
         onConfirm: () => postAdminAction('newGame', {}),
+        onCancel: () => {} 
     });
-  };
+  }, [postAdminAction]); 
 
-  const handleGameModeChange = (e) => {
+   // Handler for local settings form input changes (including payouts)
+  const handleSettingChange = useCallback((key, value) => {
+    setLocalSettings(prev => {
+        const updatedSettings = { ...prev };
+        updatedSettings[key] = value; 
+
+        const cost = Number(updatedSettings['Cost Per Square']) || 0;
+        const pot = cost * 100;
+
+        // Recalculate derived dollar amounts immediately for display
+        if (key.endsWith(' Percent') || key === 'Cost Per Square') {
+             ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(amountKey => {
+                 const percentKey = `${amountKey} Percent`;
+                 const percent = Number(updatedSettings[percentKey]) || 0; 
+                 // Store the calculated amount for display in the payout section
+                 // Note: This calculated amount isn't strictly necessary to store in state here
+                 // if calculatePayoutAmount is used directly in the render, but doing so 
+                 // can sometimes simplify the render logic. Let's keep it simple for now.
+             });
+        }
+
+        return updatedSettings; 
+    });
+  }, []); // No dependencies needed
+
+  const handleGameModeChange = useCallback((e) => { 
     const newMode = e.target.value;
+    handleSettingChange('Game Mode', newMode); 
     setConfirmModal({
         isOpen: true,
         title: 'Change Game Mode?',
-        message: `Are you sure you want to change the mode to "${newMode}"? This will be saved to your Google Sheet.`,
-        onConfirm: () => postAdminAction('setGameMode', { mode: newMode }),
+        message: `Are you sure you want to change the mode to "${newMode}"? This will be saved to your Google Sheet. Random numbers might need to be regenerated.`,
+        onConfirm: () => postAdminAction('setGameMode', { mode: newMode }), 
+        onCancel: () => handleSettingChange('Game Mode', settings['Game Mode'] || '4 Quarters')
     });
-  };
+  }, [handleSettingChange, postAdminAction, settings]); 
+
+
+  // Handler to save all settings to backend
+  const handleSaveSettings = useCallback(() => {
+     const numericFields = ['Cost Per Square', 'Payout Q1 Percent', 'Payout Q2 Percent', 'Payout Q3 Percent', 'Payout Final Percent']; 
+     let isValid = true;
+     let totalPercent = 0; 
+
+     for (const field of numericFields) {
+         const value = localSettings[field];
+         if (value !== '' && (isNaN(Number(value)) || Number(value) < 0)) {
+              showToast(`Invalid value for ${field}. Please enter a non-negative number or leave blank.`, 'error');
+              isValid = false;
+              break; 
+         }
+          if (field.endsWith(' Percent') && Number(value) > 100) {
+               showToast(`Percentage for ${field.replace(' Percent', '')} cannot exceed 100.`, 'error');
+               isValid = false;
+               break;
+          }
+          if (field.endsWith(' Percent')) {
+              totalPercent += Number(value) || 0;
+          }
+     }
+      if (isValid && totalPercent !== 100) {
+          showToast(`Warning: Payout percentages add up to ${totalPercent}%, not 100%.`, 'warning');
+      }
+
+      const urlFields = ['Home Team Logo URL', 'Away Team Logo URL'];
+       for (const field of urlFields) {
+           const value = localSettings[field];
+           if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+               showToast(`Invalid URL for ${field}. Please include http:// or https://, or leave blank.`, 'error');
+               isValid = false;
+               break; 
+           }
+       }
+
+
+     if (isValid) {
+         const finalSettingsToSave = { ...localSettings };
+         const finalCost = Number(finalSettingsToSave['Cost Per Square']) || 0;
+         const finalPot = finalCost * 100;
+         ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(amountKey => {
+             const percentKey = `${amountKey} Percent`;
+             const percent = Number(finalSettingsToSave[percentKey]) || 0;
+             finalSettingsToSave[amountKey] = Math.round((percent / 100) * finalPot); 
+         });
+
+        postAdminAction('updateSettings', finalSettingsToSave);
+     }
+  }, [localSettings, postAdminAction, showToast]); // Dependencies
+
+  // Handler for editing player form input changes
+  const handleEditingPlayerChange = useCallback((key, value) => {
+    if (key === 'Initials') {
+        value = value.toUpperCase().slice(0, 3);
+    }
+    setEditingPlayer(prev => ({ ...prev, [key]: value }));
+  }, []); 
+
+  // Handler to save player edits to backend
+  const handleUpdatePlayer = useCallback(async () => {
+    if (!editingPlayer) return;
+    
+    const squaresRaw = editingPlayer.Squares || '';
+    if (squaresRaw && !/^[0-9,\s]*$/.test(squaresRaw)) {
+         showToast('Invalid characters in Squares. Please use only numbers, commas, and spaces.', 'error');
+         return;
+    }
+    const squaresArray = squaresRaw
+        .replace(/\s/g, '') 
+        .split(',')        
+        .filter(Boolean)   
+        .map(s => parseInt(s, 10)) 
+        .filter(n => !isNaN(n) && n >= 1 && n <= 100); 
+    
+    const uniqueSquares = [...new Set(squaresArray)];
+    if (uniqueSquares.length !== squaresArray.length) {
+        showToast('Duplicate square numbers found. Please remove duplicates.', 'warning');
+        setEditingPlayer(prev => ({ ...prev, Squares: uniqueSquares.join(',') }));
+        return; 
+    }
+
+    const squaresCleaned = uniqueSquares.join(',');
+     const playerToUpdate = { ...editingPlayer, Squares: squaresCleaned };
+
+    const success = await postAdminAction('updatePlayer', playerToUpdate);
+    if (success) {
+      setEditingPlayer(null); 
+    }
+  }, [editingPlayer, postAdminAction, showToast]); 
+
 
   // --- RENDER --- //
+ // ... (rest of the component remains the same) ...
+ // --- RENDER --- //
   if (isLoading) {
       return (<div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center"><RefreshCwIcon className="animate-spin h-12 w-12 mb-4"/><p className="text-xl font-russo">Loading Football Squares...</p></div>);
   }
   
+  // Use dangerouslySetInnerHTML only if startupError contains HTML, otherwise render directly
+  const renderStartupError = () => {
+      if (typeof startupError === 'string' && startupError.includes('<b>')) {
+          return <span dangerouslySetInnerHTML={{ __html: startupError }}></span>;
+      }
+      return <span>{startupError}</span>;
+  };
+
   if (startupError) {
       return (
           <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
               <AlertTriangleIcon className="text-red-500 h-16 w-16 mb-4"/>
               <h2 className="text-2xl font-russo text-red-400 mb-2">Connection Error</h2>
               <div className="max-w-2xl bg-gray-800 p-4 rounded-lg font-sans-readable text-left">
-                  <p className="mb-4">The application could not connect to the Google Sheet backend. This usually happens for one reason:</p>
-                  <p><strong className="text-yellow-400">The Spreadsheet ID in your Google Apps Script is incorrect or missing.</strong></p>
-                  <p className="mt-4 text-sm text-gray-400">Please open your Google Apps Script, replace `YOUR_SPREADSHEET_ID_HERE` with your actual Spreadsheet ID, and re-deploy the script as a new version.</p>
+                  <p className="mb-4">The application could not connect to the Google Sheet backend. Details:</p>
+                  <p className="text-yellow-400">{renderStartupError()}</p> 
+                  <p className="mt-4 text-sm text-gray-400">Please check your Google Apps Script (Spreadsheet ID, deployment permissions) and your internet connection.</p>
               </div>
           </div>
       );
   }
+
 
   const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
     if (!isOpen) return null;
@@ -342,7 +729,7 @@ export default function App() {
   const RandomizingModal = ({ isOpen }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"> 
             <div className="bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-sm text-center">
                 <div className="flex justify-center gap-4 text-6xl mb-4">
                     <span className="animate-roll">🎲</span>
@@ -354,93 +741,149 @@ export default function App() {
     );
   };
 
+  const StatCard = ({ icon, title, value, color = 'text-yellow-400' }) => (
+    <div className="bg-gray-700 p-4 rounded-lg flex items-center gap-4">
+      <div className={`p-2 bg-gray-800 rounded-full ${color}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-gray-400 font-sans-readable">{title}</p>
+        <p className={`text-2xl font-bold font-russo ${color}`}>{value}</p>
+      </div>
+    </div>
+  );
+
+  // Main App Return
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-russo p-4 sm:p-6 lg:p-8">
+    <div className="bg-gray-900 text-white min-h-screen font-russo p-4 sm:p-6 lg:p-8 no-select"> 
       <div className="max-w-7xl mx-auto">
         <ConfirmationModal 
             isOpen={confirmModal.isOpen} 
             title={confirmModal.title}
             message={confirmModal.message}
             onConfirm={confirmModal.onConfirm}
-            onCancel={() => setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })} 
+            onCancel={() => { 
+                setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+                if (confirmModal.title === 'Change Game Mode?') {
+                    // Revert game mode change in local state if cancelled
+                    handleSettingChange('Game Mode', settings['Game Mode'] || '4 Quarters');
+                }
+            }} 
         />
         <RandomizingModal isOpen={isRandomizing} />
         <header className="bg-gray-800 rounded-xl p-4 mb-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center justify-center md:justify-start gap-4 w-full md:w-1/3"><img src={settings['Away Team Logo URL']} alt={settings['Away Team Name']} className="h-10 w-10 sm:h-12 sm:w-12 object-contain"/><span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Away Team Name']}</span></div>
-            <div className="text-center w-full md:w-1/3 order-first md:order-none tracking-wider"><h1 className="text-xl sm:text-3xl font-bold text-yellow-400">{settings['Title'] || 'Super Bowl Squares'}</h1><span className="text-sm text-gray-400">{new Date().getFullYear()}</span></div>
-            <div className="flex items-center justify-center md:justify-end gap-4 w-full md:w-1/3"><span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Home Team Name']}</span><img src={settings['Home Team Logo URL']} alt={settings['Home Team Name']} className="h-10 w-10 sm:h-12 sm:w-12 object-contain"/></div>
+             <div className="flex items-center justify-center md:justify-start gap-4 w-full md:w-1/3">
+                 <img 
+                     src={settings['Away Team Logo URL']} 
+                     alt={settings['Away Team Name']} 
+                     className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
+                     onError={(e) => { e.target.style.display = 'none'; }} 
+                 />
+                 <span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Away Team Name']}</span>
+             </div>
+             <div className="text-center w-full md:w-1/3 order-first md:order-none tracking-wider">
+                 <h1 className="text-xl sm:text-3xl font-bold text-yellow-400">{settings['Title'] || 'Super Bowl Squares'}</h1>
+                 <span className="text-sm text-gray-400">{new Date().getFullYear()}</span>
+             </div>
+             <div className="flex items-center justify-center md:justify-end gap-4 w-full md:w-1/3">
+                 <span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Home Team Name']}</span>
+                 <img 
+                     src={settings['Home Team Logo URL']} 
+                     alt={settings['Home Team Name']} 
+                     className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
+                     onError={(e) => { e.target.style.display = 'none'; }}
+                 />
+             </div>
         </header>
 
         <div className="bg-gray-800 rounded-xl p-4 mb-6 shadow-lg flex flex-col sm:flex-row items-center justify-around text-center gap-4">
             <div className="flex flex-col">
                 <span className="text-sm text-gray-400 font-sans-readable">Total Pot</span>
-                <span className="text-3xl font-bold text-green-400">${claimedSquaresMap.size * (settings['Cost Per Square'] || 0)}</span>
+                <span className="text-3xl font-bold text-green-400">${totalPot}</span> 
             </div>
             <div className="h-16 w-px bg-gray-600 hidden sm:block"></div>
             <div className="flex items-center gap-4 sm:gap-6 text-lg">
                 <TrophyIcon className="text-yellow-400 h-8 w-8"/>
                 <div className="text-left font-sans-readable">
-                    <p><span className="font-bold text-orange-400">Q1:</span> ${settings['Payout Q1'] || '0'}</p>
-                    <p><span className="font-bold text-yellow-300">Q2:</span> ${settings['Payout Q2'] || '0'}</p>
+                    <p><span className="font-bold text-orange-400">Q1:</span> ${settings?.['Payout Q1'] || '0'}</p>
+                    <p><span className="font-bold text-yellow-300">Q2:</span> ${settings?.['Payout Q2'] || '0'}</p>
                 </div>
                 <div className="text-left font-sans-readable">
-                    <p><span className="font-bold text-blue-400">Q3:</span> ${settings['Payout Q3'] || '0'}</p>
-                    <p><span className="font-bold text-purple-400">Final:</span> ${settings['Payout Final'] || '0'}</p>
+                    <p><span className="font-bold text-blue-400">Q3:</span> ${settings?.['Payout Q3'] || '0'}</p>
+                    <p><span className="font-bold text-purple-400">Final:</span> ${settings?.['Payout Final'] || '0'}</p>
                 </div>
             </div>
         </div>
         
         <div className="flex justify-between items-center mb-4 px-2 gap-2">
-            <button onClick={() => fetchData(false)} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition-transform transform hover:scale-105 disabled:opacity-50"><RefreshCwIcon className={isRefreshing ? 'animate-spin' : ''}/><span className="hidden sm:inline">Sync</span></button>
-            <div className="flex items-center gap-2 text-base font-bold bg-gray-800 px-3 py-2 rounded-lg"><TagIcon/><span>Cost:</span><span className="text-yellow-400">${settings['Cost Per Square']}</span></div>
-            <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition-transform transform hover:scale-105"><LockIcon/><span className="hidden sm:inline">Admin</span></button>
+            {/* --- Sync Button --- */}
+            <button onClick={() => fetchData(false)} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"> 
+              <RefreshCwIcon className={isRefreshing ? 'animate-spin' : ''}/>
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+            <div className="flex items-center gap-2 text-base font-bold bg-gray-800 px-3 py-2 rounded-lg">
+              <TagIcon/>
+              <span>Cost:</span>
+              <span className="text-yellow-400">${Number(settings?.['Cost Per Square']) || 0}</span> 
+            </div>
+            <button onClick={() => setShowAdminPanel(prev => !prev)} className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition-transform transform hover:scale-105">
+              <LockIcon/>
+              <span className="hidden sm:inline">Admin</span>
+            </button>
         </div>
 
         <main className="flex flex-col lg:flex-row gap-6">
-          {/* This is the grid container */}
+          {/* --- Grid Container --- */}
           <div className="lg:w-2/3">
-            {/* Home Team Name (Above Grid) */}
             <h2 className="text-xl sm:text-2xl font-bold text-gray-300 mb-2 tracking-widest text-center">
               {settings['Home Team Name']}
             </h2>
-
-            {/* Wrapper for Side Team Name + Grid */}
-            <div className="flex items-center justify-center gap-2 sm:gap-4"> {/* Added items-center and justify-center */}
-              
-              {/* Away Team Name (Side) */}
-              <h2 className="writing-mode-v-rl rotate-180 text-xl sm:text-2xl font-bold text-gray-300 tracking-widest text-center"> {/* Removed mt-12 */}
+            <div className="flex items-center justify-center gap-1 sm:gap-2"> 
+              <h2 className="writing-mode-v-rl rotate-180 text-lg sm:text-xl font-bold text-gray-300 tracking-widest text-center px-1"> 
                 {settings['Away Team Name']}
               </h2>
-
-              {/* Main Grid - must have flex-1 to grow */}
-              <div className="flex-1 bg-gray-800 p-1 sm:p-2 rounded-xl shadow-2xl relative overflow-x-auto">
-                  <div className="grid grid-cols-11 gap-0.5 min-w-[500px] sm:min-w-full">
+              {/* --- Main Grid Area --- */}
+              <div className="bg-gray-800 p-1 rounded-xl shadow-2xl relative overflow-hidden flex-1"> 
+                  <div className="grid grid-cols-11 gap-[1px] sm:gap-0.5"> 
                       
-                      {/* 1. Top-Left Special Corner - NOW HORIZONTAL */}
-                      <div className="relative aspect-square bg-gray-700 rounded-sm flex items-center justify-around text-[8px] sm:text-[10px] font-sans-readable p-0.5 sm:p-1 overflow-hidden">
-                        {settings['Game Mode'] === '4 Quarters' && (
-                          <>
-                            <span className="font-bold text-orange-400">Q1</span>
-                            <span className="font-bold text-yellow-300">Q2</span>
-                            <span className="font-bold text-blue-400">Q3</span>
-                            <span className="font-bold text-purple-400">F</span>
-                          </>
-                        )}
-                      </div>
+                      {/* --- MODIFIED Top-Left Corner --- */}
+                       <div className="relative aspect-square bg-gray-700 rounded-sm text-[5px] xs:text-[6px] sm:text-[9px] font-sans-readable overflow-hidden grid-cell-min-width p-[1px] sm:p-0.5">
+                           {settings['Game Mode'] === '4 Quarters' && (
+                               <div className="relative w-full h-full"> {/* Use relative positioning container */}
+                                   {/* Horizontal Labels - positioned absolutely at bottom */}
+                                   <div className="absolute bottom-0 left-0 right-0 grid grid-cols-4">
+                                       <span className="col-start-1 flex items-end justify-center font-bold text-orange-400">Q1</span>
+                                       <span className="col-start-2 flex items-end justify-center font-bold text-yellow-300">Q2</span>
+                                       <span className="col-start-3 flex items-end justify-center font-bold text-blue-400">Q3</span>
+                                       {/* F is positioned separately */}
+                                   </div>
+                                   {/* Vertical Labels - positioned absolutely at right */}
+                                   <div className="absolute top-0 bottom-0 right-0 grid grid-rows-4">
+                                       <span className="row-start-1 flex items-center justify-end font-bold text-orange-400">Q1</span>
+                                       <span className="row-start-2 flex items-center justify-end font-bold text-yellow-300">Q2</span>
+                                       <span className="row-start-3 flex items-center justify-end font-bold text-blue-400">Q3</span>
+                                        {/* F is positioned separately */}
+                                   </div>
+                                    {/* Shared Final Label (Bottom Right) - positioned absolutely */}
+                                   <span className="absolute bottom-0 right-0 flex items-end justify-end font-bold text-purple-400 pr-0.5 pb-0.5">F</span>
+                               </div>
+                           )}
+                       </div>
+                       {/* --- END MODIFICATION --- */}
 
-                      {/* 2. Home Numbers (10 cols) - NOW INDIVIDUAL SQUARES */}
+
+                      {/* 2. Home Numbers */}
                       {Array.from({ length: 10 }).map((_, colIndex) => (
-                        <div key={`home-header-${colIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
+                        <div key={`home-header-${colIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width">
                           {settings['Game Mode'] === '4 Quarters' ? (
-                            // This is now a grid of 4 vertical boxes
-                            <div className="grid grid-rows-4 gap-0.5 text-center text-[10px] sm:text-base w-full h-full font-sans-readable">
-                              <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q1?.home?.[colIndex]}</span>
-                              <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers.q2?.home?.[colIndex]}</span>
-                              <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q3?.home?.[colIndex]}</span>
-                              <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q4?.home?.[colIndex]}</span>
+                            <div className="grid grid-rows-4 gap-[1px] text-center text-[5px] xs:text-[7px] sm:text-[10px] w-full h-full font-sans-readable">
+                              <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q1?.home?.[colIndex] ?? ''}</span>
+                              <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q2?.home?.[colIndex] ?? ''}</span>
+                              <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q3?.home?.[colIndex] ?? ''}</span>
+                              <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q4?.home?.[colIndex] ?? ''}</span>
                             </div>
                           ) : (
-                            <span className="text-lg sm:text-xl">{fullGameNumbers.home?.[colIndex]}</span>
+                            <span className="text-sm xs:text-base sm:text-lg">{fullGameNumbers?.home?.[colIndex] ?? ''}</span> 
                           )}
                         </div>
                       ))}
@@ -448,30 +891,49 @@ export default function App() {
                       {/* 3. Away Numbers + 100 Squares */}
                       {Array.from({ length: 10 }).map((_, rowIndex) => (
                           <Fragment key={`row-${rowIndex}`}>
-                              {/* Away Number Header - NOW HORIZONTAL INDIVIDUAL SQUARES */}
-                              <div className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-0.5">
+                              {/* Away Numbers */}
+                              <div className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width">
                                   {settings['Game Mode'] === '4 Quarters' ? (
-                                    // This is now a grid of 4 horizontal boxes
-                                    <div className="grid grid-cols-4 gap-0.5 text-center text-[10px] sm:text-base w-full h-full font-sans-readable">
-                                      <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q1?.away?.[rowIndex]}</span>
-                                      <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers.q2?.away?.[rowIndex]}</span>
-                                      <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q3?.away?.[rowIndex]}</span>
-                                      <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers.q4?.away?.[rowIndex]}</span>
+                                    <div className="grid grid-cols-4 gap-[1px] text-center text-[5px] xs:text-[7px] sm:text-[10px] w-full h-full font-sans-readable"> 
+                                      <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q1?.away?.[rowIndex] ?? ''}</span>
+                                      <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q2?.away?.[rowIndex] ?? ''}</span>
+                                      <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q3?.away?.[rowIndex] ?? ''}</span>
+                                      <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q4?.away?.[rowIndex] ?? ''}</span>
                                     </div>
                                   ) : (
-                                    <span className="text-lg sm:text-xl">{fullGameNumbers.away?.[rowIndex]}</span>
+                                    <span className="text-sm xs:text-base sm:text-lg">{fullGameNumbers?.away?.[rowIndex] ?? ''}</span> 
                                   )}
                               </div>
 
-                              {/* The 10 Squares for this row */}
+                              {/* 100 Squares */}
                               {Array.from({ length: 10 }).map((_, colIndex) => {
                                   const squareNumber = rowIndex * 10 + colIndex + 1;
                                   const claimed = claimedSquaresMap.get(squareNumber);
                                   const isSelected = selectedSquares.includes(squareNumber);
                                   const winnerClasses = []; const winnerBadges = [];
-                                  Object.entries(winningSquares).forEach(([quarter, num]) => { if(num === squareNumber) { if (quarter === 'Q1') { winnerClasses.push('border-orange-500'); winnerBadges.push({q: 'Q1', c: 'bg-orange-500'}); } if (quarter === 'Q2') { winnerClasses.push('border-yellow-400'); winnerBadges.push({q: 'Q2', c: 'bg-yellow-400'}); } if (quarter === 'Q3') { winnerClasses.push('border-blue-500'); winnerBadges.push({q: 'Q3', c: 'bg-blue-500'}); } if (quarter === 'Q4') { winnerClasses.push('border-purple-500'); winnerBadges.push({q: 'F', c: 'bg-purple-500'}); } } });
-                                  const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-4' : isSelected ? 'border-4 border-green-500' : claimed && !claimed.paid ? 'border-2 border-red-500' : 'border-2 border-gray-600';
-                                  return (<div key={squareNumber} onClick={() => handleSquareClick(squareNumber)} className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${claimed ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'}`}><span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px] text-gray-500 font-sans-readable">{squareNumber}</span>{claimed && <span className="text-[9px] sm:text-sm font-semibold text-center break-all px-0.5 font-sans-readable">{claimed.initials || claimed.name}</span>}{winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[8px] font-bold px-1 rounded-full text-gray-900 ${b.c}`}>{b.q}</span>))}</div>}</div>);
+                                  
+                                  Object.entries(winningSquares || {}).forEach(([quarter, num]) => { 
+                                      if(num === squareNumber) { 
+                                          if (quarter === 'Q1') { winnerClasses.push('border-orange-500'); winnerBadges.push({q: 'Q1', c: 'bg-orange-500'}); } 
+                                          if (quarter === 'Q2') { winnerClasses.push('border-yellow-400'); winnerBadges.push({q: 'Q2', c: 'bg-yellow-400'}); } 
+                                          if (quarter === 'Q3') { winnerClasses.push('border-blue-500'); winnerBadges.push({q: 'Q3', c: 'bg-blue-500'}); } 
+                                          if (quarter === 'Q4') { winnerClasses.push('border-purple-500'); winnerBadges.push({q: 'F', c: 'bg-purple-500'}); } 
+                                      } 
+                                  });
+
+                                  const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-2 sm:border-4' : isSelected ? 'border-2 sm:border-4 border-green-500' : claimed && !claimed.paid ? 'border border-red-500 sm:border-2' : 'border border-gray-600 sm:border-2'; 
+                                  
+                                  return (
+                                    <div 
+                                      key={squareNumber} 
+                                      onClick={() => handleSquareClick(squareNumber)} 
+                                      className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${claimed ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'} grid-cell-min-width`}
+                                    >
+                                      <span className="absolute top-0 left-0.5 text-[5px] xs:text-[6px] sm:text-[9px] text-gray-500 font-sans-readable">{squareNumber}</span> 
+                                      {claimed && <span className="text-[6px] xs:text-[7px] sm:text-[10px] font-semibold text-center break-all px-0.5 font-sans-readable">{claimed.initials || claimed.name}</span>} 
+                                      {winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[5px] xs:text-[6px] font-bold px-0.5 sm:px-1 rounded-full text-gray-900 ${b.c}`}>{b.q}</span>))}</div>} 
+                                    </div>
+                                  );
                               })}
                           </Fragment>
                       ))}
@@ -479,7 +941,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* This is the existing legend, no changes needed here */}
+            {/* Legend */}
             <div className="mt-4 bg-gray-800 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm font-sans-readable">
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-gray-600 bg-gray-900"></div><span>Available</span></div>
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-red-500 bg-gray-700"></div><span>Claimed (Unpaid)</span></div>
@@ -489,40 +951,270 @@ export default function App() {
                 <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-purple-500 bg-gray-700"></div><span>Final Winner</span></div>
             </div>
           </div>
+
+          {/* --- Claim Form (Right Side) --- */}
           <div className="lg:w-1/3 bg-gray-800 p-6 rounded-xl shadow-lg font-sans-readable">
             <h2 className="text-2xl font-bold mb-4 text-center text-yellow-400 font-russo">Claim Your Squares</h2>
             <form onSubmit={handleClaimSubmit}>
-              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="name">Your Name</label><input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div>
-              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="initials">Your Initials (Max 3)</label><input type="text" id="initials" value={formInitials} onChange={(e) => setFormInitials(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div>
+              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="name">Your Name</label><input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} required className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div> 
+              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="initials">Your Initials (Max 3)</label><input type="text" id="initials" value={formInitials} onChange={(e) => setFormInitials(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} required className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div> 
               <div className="mb-4"><label className="block text-gray-400 mb-2">Selected Squares ({selectedSquares.length})</label><div className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 min-h-[44px] break-words">{selectedSquares.length > 0 ? selectedSquares.sort((a,b) => a - b).join(', ') : <span className="text-gray-500">Click squares on the grid</span>}</div></div>
-              <div className="flex gap-2 mb-4"><input type="number" placeholder="#" value={numToRandomize} onChange={e => setNumToRandomize(e.target.value)} className="w-1/3 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400 text-center" min="1"/><button type="button" onClick={handleRandomizeSelection} className="w-2/3 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 font-russo"><Dice5Icon/> Pick Random</button></div>
-              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="payment">Payment Method</label><select id="payment" value={formPaymentMethod} onChange={e => setFormPaymentMethod(e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400">{paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-              {settings[`${formPaymentMethod} Account`] && (
+              <div className="flex gap-2 mb-4">
+                  <input 
+                      type="number" 
+                      placeholder="#" 
+                      value={numToRandomize} 
+                      onChange={e => setNumToRandomize(e.target.value)} 
+                      className="w-1/3 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400 text-center" 
+                      min="1" 
+                      step="1" 
+                      pattern="\d*" 
+                  />
+                  <button type="button" onClick={handleRandomizeSelection} className="w-2/3 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 font-russo">
+                    <Dice5Icon/> Pick Random
+                  </button>
+              </div>
+              {/* --- PAYMENT METHOD SECTION --- */}
+              <div className="mb-4"> 
+                  <label className="block text-gray-400 mb-2" htmlFor="payment">Payment Method</label>
+                  <select 
+                      id="payment" 
+                      value={formPaymentMethod} 
+                      onChange={e => setFormPaymentMethod(e.target.value)} 
+                      className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"
+                      required 
+                  >
+                       <option value="" disabled={formPaymentMethod !== ""}>Select method</option> 
+                      {paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+              </div>
+               {/* Display payment account info */}
+              {formPaymentMethod && settings[`${formPaymentMethod} Account`] && (
                 <div className="mb-4 -mt-2 text-center bg-gray-700 p-2 rounded-lg">
                     <p className="text-sm text-gray-400">Send payment to:</p>
-                    <p className="font-bold text-yellow-300">{settings[`${formPaymentMethod} Account`]}</p>
+                    <p className="font-bold text-yellow-300 break-words">{settings[`${formPaymentMethod} Account`]}</p> 
                 </div>
               )}
-              <div className="bg-gray-900 rounded-lg p-4 text-center mb-4 font-russo"><p className="text-gray-400">Total Cost</p><p className="text-3xl font-bold text-green-400">${selectedSquares.length * settings['Cost Per Square']}</p></div>
-              <button type="submit" disabled={isSubmitting} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-transform transform hover:scale-105 font-russo flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+
+              <div className="bg-gray-900 rounded-lg p-4 text-center mb-4 font-russo">
+                <p className="text-gray-400">Total Cost</p>
+                <p className="text-3xl font-bold text-green-400">${selectedSquares.length * (Number(settings?.['Cost Per Square']) || 0)}</p> 
+              </div>
+              <button 
+                  type="submit" 
+                  disabled={isSubmitting || selectedSquares.length === 0} 
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-transform transform hover:scale-105 font-russo flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+              >
                 {isSubmitting ? <RefreshCwIcon className="animate-spin h-6 w-6" /> : 'Claim Squares'}
               </button>
             </form>
           </div>
         </main>
-        {showAdminPanel && (<div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative font-sans-readable">
-            <button onClick={() => setShowAdminPanel(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button><h2 className="text-2xl font-bold mb-4 text-center text-yellow-400 font-russo">Admin Panel</h2>
+
+        {/* --- ADMIN PANEL MODAL --- */}
+        {showAdminPanel && (<div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto relative font-sans-readable">
+            <button onClick={() => setShowAdminPanel(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl">&times;</button><h2 className="text-2xl font-bold mb-6 text-center text-yellow-400 font-russo">Admin Panel</h2>
             {!isAdmin ? (<form onSubmit={handleAdminLogin} className="flex flex-col items-center"><label className="text-gray-400 mb-2" htmlFor="admin-pass">Enter Admin Password</label><input type="password" id="admin-pass" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 mb-4 w-64 focus:outline-none focus:border-yellow-400"/><button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg font-russo">Login</button></form>)
-            : (<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><UserIcon/> Player Payments</h3><div className="space-y-2 max-h-96 overflow-y-auto pr-2">{players.map(player => (<div key={player.Name} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"><div><p className="font-bold">{player.Name} ({player.Initials})</p><p className="text-sm text-gray-400">{String(player.Squares).split(',').length} squares - ${player.Cost} ({player.PaymentMethod})</p></div><div className="flex items-center gap-3"><button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : 'text-gray-400 hover:bg-green-600'}`}><CheckCircleIcon/></button><button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : 'text-gray-400 hover:bg-red-600'}`}><XCircleIcon/></button><button onClick={() => handleDeletePlayer(player.Name)} className="p-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white"><Trash2Icon/></button></div></div>))}</div></div>
-                <div className="space-y-6">
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><SlidersIcon/> Game Settings</h3><div className="flex gap-4"><select value={settings['Game Mode']} onChange={handleGameModeChange} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"><option value="4 Quarters">4 Quarters</option><option value="Full Game">Full Game</option></select></div></div>
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><Dice5Icon/> Randomize Numbers</h3><div className="flex gap-4"><button onClick={() => handleRandomizeNumbers('Full Game')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for full game'} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">Full Game</button><button onClick={() => handleRandomizeNumbers('4 Quarters')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for 4 quarters'} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">4 Quarters</button></div></div>
-                <div><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><TrophyIcon/> Enter & Update Scores</h3><div className="space-y-2">{localScores.map(score => (<div key={score.Quarter} className="grid grid-cols-[auto,1fr,1fr,auto] items-center gap-2"><label className="font-bold">{score.Quarter === 'Q4' ? 'Final' : score.Quarter}</label><input type="number" placeholder={settings['Away Team Name']} value={score['Away Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Away Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><input type="number" placeholder={settings['Home Score']} value={score['Home Score']} onChange={(e) => handleLocalScoreChange(score.Quarter, 'Home Score', e.target.value)} className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1"/><button onClick={() => handleScoreUpdate(score.Quarter)} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Save</button></div>))}</div></div>
-                <div className="border-t border-gray-700 pt-4"><h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><AlertTriangleIcon className="text-red-500"/> New Game</h3><button onClick={handleNewGame} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg font-russo">Clear All Data</button><p className="text-xs text-gray-400 mt-2">Deletes all players, scores, and numbers. Settings will be kept.</p></div>
-            </div></div>)}
+            : (
+            <>
+              {/* --- STATS SECTION --- */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <StatCard icon={<DollarSignIcon />} title="Total Pot" value={`$${totalPot}`} color="text-green-400" />
+                <StatCard icon={<GridIcon />} title="Squares Claimed" value={adminStats.totalClaimed} color="text-blue-400" />
+                <StatCard icon={<GridIcon />} title="Squares Available" value={adminStats.totalAvailable} />
+                <StatCard icon={<CheckCircleIcon />} title="Players Paid" value={adminStats.totalPaid} color="text-green-400" />
+                <StatCard icon={<XCircleIcon />} title="Players Unpaid" value={adminStats.totalUnpaid} color="text-red-400" />
+              </div>
+
+              {/* --- Main Admin Content --- */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* --- COLUMN 1: Player Management --- */}
+                <div className="lg:col-span-1">
+                  {editingPlayer ? (
+                    // --- EDIT PLAYER FORM ---
+                    <div>
+                      <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><EditIcon/> Edit Player</h3>
+                      <div className="bg-gray-700 p-4 rounded-lg space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-name">Name</label>
+                          <input type="text" id="edit-name" value={editingPlayer?.Name || ''} readOnly className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400 opacity-70 cursor-not-allowed"/>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-initials">Initials (Max 3)</label>
+                          <input type="text" id="edit-initials" value={editingPlayer?.Initials || ''} onChange={(e) => handleEditingPlayerChange('Initials', e.target.value)} maxLength={3} className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-squares">Squares (comma-separated)</label>
+                          <input type="text" id="edit-squares" value={editingPlayer?.Squares || ''} onChange={(e) => handleEditingPlayerChange('Squares', e.target.value)} className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                        </div>
+                        <div className="flex gap-4">
+                          <button onClick={() => setEditingPlayer(null)} className="w-1/2 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg font-russo">Cancel</button>
+                          <button onClick={handleUpdatePlayer} className="w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg font-russo flex items-center justify-center gap-2"><SaveIcon /> Save</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // --- PLAYER PAYMENTS LIST ---
+                    <div>
+                      <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><UserIcon/> Player Payments</h3>
+                      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                        {players && players.length > 0 ? players.map(player => (
+                          player && player.Name && ( 
+                            <div key={player.Name} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center gap-2"> 
+                              <div className="flex-1 min-w-0"> 
+                                <p className="font-bold truncate">{player.Name} ({player.Initials})</p> 
+                                <p className="text-sm text-gray-400">{String(player.Squares || '').split(',').filter(Boolean).length} squares - ${player.Cost} ({player.PaymentMethod})</p>
+                              </div>
+                              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0"> 
+                                <button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : 'text-gray-400 hover:bg-green-600 hover:text-white'}`}><CheckCircleIcon/></button>
+                                <button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : 'text-gray-400 hover:bg-red-600 hover:text-white'}`}><XCircleIcon/></button>
+                                <button onClick={() => setEditingPlayer(player)} className="p-1 rounded-full text-blue-400 hover:bg-blue-500 hover:text-white"><EditIcon/></button>
+                                <button onClick={() => handleDeletePlayer(player.Name)} className="p-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white"><Trash2Icon/></button>
+                              </div>
+                            </div>
+                          )
+                        )) : <p className="text-gray-400 text-center py-4">No players have claimed squares yet.</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* --- COLUMN 2: Game Settings & Scores --- */}
+                <div className="lg:col-span-1 space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><Dice5Icon/> Randomize Numbers</h3>
+                    <div className="flex gap-4">
+                      <button onClick={() => handleRandomizeNumbers('Full Game')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for full game'} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">Full Game</button>
+                      <button onClick={() => handleRandomizeNumbers('4 Quarters')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for 4 quarters'} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">4 Quarters</button>
+                    </div>
+                     {claimedSquaresMap.size < 100 && <p className="text-xs text-yellow-400 mt-2 text-center">({100 - claimedSquaresMap.size} more squares needed)</p>}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><TrophyIcon/> Enter & Update Scores</h3>
+                    <div className="space-y-2">
+                      {localScores && localScores.map(score => (
+                        score && score.Quarter && ( 
+                            <div key={score.Quarter} className="grid grid-cols-[auto,1fr,1fr,auto] items-center gap-2">
+                            <label className="font-bold">{score.Quarter === 'Q4' ? 'Final' : score.Quarter}</label>
+                            <input 
+                                type="number" 
+                                placeholder={settings['Away Team Name']} 
+                                value={score['Away Score'] ?? ''} 
+                                onChange={(e) => handleLocalScoreChange(score.Quarter, 'Away Score', e.target.value)} 
+                                className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1 focus:outline-none focus:border-yellow-400"
+                                min="0" 
+                            />
+                            <input 
+                                type="number" 
+                                placeholder={settings['Home Team Name']} 
+                                value={score['Home Score'] ?? ''} 
+                                onChange={(e) => handleLocalScoreChange(score.Quarter, 'Home Score', e.target.value)} 
+                                className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1 focus:outline-none focus:border-yellow-400"
+                                min="0" 
+                            />
+                            <button onClick={() => handleScoreUpdate(score.Quarter)} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Save</button>
+                            </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-700 pt-6">
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><AlertTriangleIcon className="text-red-500"/> New Game</h3>
+                    <button onClick={handleNewGame} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg font-russo">Clear All Data</button>
+                    <p className="text-xs text-gray-400 mt-2">Deletes all players, scores, and numbers. Settings will be kept.</p>
+                  </div>
+                </div>
+
+                {/* --- COLUMN 3: App Settings --- */}
+                <div className="lg:col-span-1 space-y-4">
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><SlidersIcon/> App & Game Settings</h3>
+                  
+                  {/* General Settings */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-title">Title</label>
+                      <input id="setting-title" type="text" value={localSettings['Title'] || ''} onChange={(e) => handleSettingChange('Title', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-cost">Cost Per Square</label>
+                      <input id="setting-cost" type="number" value={localSettings['Cost Per Square'] || ''} onChange={(e) => handleSettingChange('Cost Per Square', e.target.value)} min="0" className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    </div>
+                  </div>
+
+                  {/* Team Settings */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-home-name">Home Team Name</label>
+                      <input id="setting-home-name" type="text" value={localSettings['Home Team Name'] || ''} onChange={(e) => handleSettingChange('Home Team Name', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-away-name">Away Team Name</label>
+                      <input id="setting-away-name" type="text" value={localSettings['Away Team Name'] || ''} onChange={(e) => handleSettingChange('Away Team Name', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-home-logo">Home Team Logo URL</label>
+                    <input id="setting-home-logo" type="text" value={localSettings['Home Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Home Team Logo URL', e.target.value)} placeholder="https://..." className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-away-logo">Away Team Logo URL</label>
+                    <input id="setting-away-logo" type="text" value={localSettings['Away Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Away Team Logo URL', e.target.value)} placeholder="https://..." className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                  </div>
+                  
+                  {/* --- MODIFIED PAYOUTS SECTION --- */}
+                  <div className="space-y-3 border-t border-gray-700 pt-4"> {/* Added border and padding */}
+                     <p className="text-sm font-bold text-gray-400 mb-1">Payouts (Percentage of Total Pot: ${totalPot})</p>
+                    {['Q1', 'Q2', 'Q3', 'Final'].map(q => {
+                        const amountKey = `Payout ${q}`;
+                        const percentKey = `${amountKey} Percent`;
+                        // Display the dollar amount dynamically calculated from the current percentage in localSettings
+                        const displayAmount = calculatePayoutAmount(percentKey); 
+                        return (
+                            <div key={q} className="grid grid-cols-[auto,1fr,auto] gap-2 items-center"> {/* Changed grid template */}
+                                <label className="block text-sm font-bold text-gray-400 justify-self-end" htmlFor={`setting-payout-${q}-percent`}>{q}:</label> {/* Right align label */}
+                                <div className="flex items-center justify-center"> {/* Center input group */}
+                                    <input 
+                                        id={`setting-payout-${q}-percent`}
+                                        type="number" 
+                                        value={localSettings[percentKey] ?? ''} // Use nullish coalescing
+                                        onChange={(e) => handleSettingChange(percentKey, e.target.value)} 
+                                        min="0" max="100" step="1"
+                                        className="w-16 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 text-center focus:outline-none focus:border-yellow-400"
+                                    />
+                                    <span className="ml-1 text-gray-400">%</span>
+                                </div>
+                                {/* Use displayAmount which reacts to changes */}
+                                <span className="text-sm text-gray-400 justify-self-start">= ${displayAmount}</span> {/* Left align amount */}
+                            </div>
+                        );
+                    })}
+                   </div>
+                  {/* --- END MODIFIED PAYOUTS --- */}
+
+
+                  {/* Game Mode */}
+                  <div className="border-t border-gray-700 pt-4"> {/* Added border and padding */}
+                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-game-mode">Game Mode</label>
+                    <select id="setting-game-mode" value={localSettings['Game Mode'] || '4 Quarters'} onChange={handleGameModeChange} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400">
+                      <option value="4 Quarters">4 Quarters</option>
+                      <option value="Full Game">Full Game</option>
+                    </select>
+                  </div>
+                  
+                  {/* Save Button */}
+                  <button onClick={handleSaveSettings} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-transform transform hover:scale-105 font-russo flex items-center justify-center gap-2 mt-4"> 
+                    <SaveIcon /> Save All Settings
+                  </button>
+
+                </div>
+              </div>
+            </>
+            )}
         </div></div>)}
-        {toast.show && (<div className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg text-white shadow-lg z-50 animate-fade-in-out font-sans-readable`}><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
+
+        {/* --- Toast Notification --- */}
+        {toast.show && (<div className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out font-sans-readable ${toast.type === 'error' ? 'bg-red-600 text-white' : toast.type === 'warning' ? 'bg-yellow-500 text-black' : 'bg-green-600 text-white'}`}><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
       </div>
     </div>
   );
