@@ -5,6 +5,7 @@ import React, { useState, useMemo, useCallback, useEffect, Fragment, useRef } fr
 const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzcOHZmaty10-PocD2u2pf5nk9GH3T0QzB30Lc13tFT9sexw9WrypJgZ_67BVHeE0xWSA/exec';
 
 // --- HELPER ICONS --- //
+// Adjusted icons to use currentColor for better theme compatibility
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
@@ -21,6 +22,9 @@ const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height
 const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>;
 const DollarSignIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>;
 const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
+// NEW: Sun/Moon icons for theme toggle
+const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
 
 
 // --- CORE APPLICATION --- //
@@ -36,6 +40,7 @@ export default function App() {
   const [fourQuarterNumbers, setFourQuarterNumbers] = useState({ q1: {}, q2: {}, q3: {}, q4: {} });
   const [isLoading, setIsLoading] = useState(true);
   const [startupError, setStartupError] = useState(null);
+  const [theme, setTheme] = useState('dark'); // NEW: Theme state ('light' or 'dark')
 
   // UI State
   const [selectedSquares, setSelectedSquares] = useState([]);
@@ -188,7 +193,10 @@ export default function App() {
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
     const style = document.createElement('style');
+     // Inject Tailwind dark mode class based on state
     style.textContent = `
+      :root { --toast-bg: #1f2937; --toast-text: #f9fafb; } /* Default dark theme vars */
+      html.light { --toast-bg: #f3f4f6; --toast-text: #11182b; } /* Light theme vars */
       body, .font-russo { font-family: 'Russo One', sans-serif; }
       .font-sans-readable { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
       @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -205,6 +213,22 @@ export default function App() {
     // Cleanup toast timer on unmount
     return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
   }, [fetchData]); // Run only on mount (fetchData is stable)
+
+   // --- THEME MANAGEMENT --- //
+   useEffect(() => {
+     // Apply the theme class to the html element
+     const root = window.document.documentElement;
+     root.classList.remove(theme === 'light' ? 'dark' : 'light');
+     root.classList.add(theme);
+     // Optionally save theme preference to localStorage
+     // localStorage.setItem('squaresTheme', theme);
+   }, [theme]);
+
+   // Function to toggle theme
+   const toggleTheme = () => {
+       setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+   };
+   // --- END THEME MANAGEMENT --- //
 
 
   // --- ADMIN PANEL LOCAL SETTINGS RESET --- //
@@ -228,9 +252,9 @@ export default function App() {
        });
        setLocalSettings(currentSettings);
     }
-     // --- MODIFIED: Removed settings from dependency array ---
+     // Removed settings from dependency array to prevent unwanted resets
   }, [showAdminPanel, isAdmin]); 
-    // --- END MODIFICATION ---
+    
 
 
   // --- DERIVED STATE & MEMOIZATION --- //
@@ -441,8 +465,17 @@ export default function App() {
       
       // Update main settings and localSettings state AFTER successful fetch for settings update
       if (action === 'updateSettings') {
-        setSettings(payload); 
-        setLocalSettings(payload); // Ensure local form reflects saved state
+        // Need to recalculate percentages/amounts based on saved data
+        const updatedSettings = { ...payload }; // Start with the payload sent
+        const cost = Number(updatedSettings['Cost Per Square']) || 0;
+        const pot = cost * 100;
+        ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
+            const percentKey = `${key} Percent`;
+            // Ensure both amount and percent are consistent after save
+            updatedSettings[key] = Math.round((Number(updatedSettings[percentKey]) / 100) * pot); 
+        });
+        setSettings(updatedSettings); 
+        setLocalSettings(updatedSettings); // Ensure local form reflects saved state
       }
       
       return true; 
@@ -565,9 +598,8 @@ export default function App() {
                  const percentKey = `${amountKey} Percent`;
                  const percent = Number(updatedSettings[percentKey]) || 0; 
                  // Store the calculated amount for display in the payout section
-                 // Note: This calculated amount isn't strictly necessary to store in state here
-                 // if calculatePayoutAmount is used directly in the render, but doing so 
-                 // can sometimes simplify the render logic. Let's keep it simple for now.
+                 // This ensures the "= $X" part updates live as percentage or cost changes
+                 updatedSettings[amountKey] = Math.round((percent / 100) * pot); 
              });
         }
 
@@ -610,7 +642,7 @@ export default function App() {
               totalPercent += Number(value) || 0;
           }
      }
-      if (isValid && totalPercent !== 100) {
+      if (isValid && Math.round(totalPercent) !== 100) { // Check rounded value
           showToast(`Warning: Payout percentages add up to ${totalPercent}%, not 100%.`, 'warning');
       }
 
@@ -684,7 +716,7 @@ export default function App() {
  // ... (rest of the component remains the same) ...
  // --- RENDER --- //
   if (isLoading) {
-      return (<div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center"><RefreshCwIcon className="animate-spin h-12 w-12 mb-4"/><p className="text-xl font-russo">Loading Football Squares...</p></div>);
+      return (<div className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center justify-center"><RefreshCwIcon className="animate-spin h-12 w-12 mb-4"/><p className="text-xl font-russo">Loading Football Squares...</p></div>);
   }
   
   // Use dangerouslySetInnerHTML only if startupError contains HTML, otherwise render directly
@@ -697,13 +729,13 @@ export default function App() {
 
   if (startupError) {
       return (
-          <div className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center justify-center p-4 text-center">
               <AlertTriangleIcon className="text-red-500 h-16 w-16 mb-4"/>
-              <h2 className="text-2xl font-russo text-red-400 mb-2">Connection Error</h2>
-              <div className="max-w-2xl bg-gray-800 p-4 rounded-lg font-sans-readable text-left">
-                  <p className="mb-4">The application could not connect to the Google Sheet backend. Details:</p>
-                  <p className="text-yellow-400">{renderStartupError()}</p> 
-                  <p className="mt-4 text-sm text-gray-400">Please check your Google Apps Script (Spreadsheet ID, deployment permissions) and your internet connection.</p>
+              <h2 className="text-2xl font-russo text-red-600 dark:text-red-400 mb-2">Connection Error</h2>
+              <div className="max-w-2xl bg-white dark:bg-gray-800 p-4 rounded-lg font-sans-readable text-left shadow-lg">
+                  <p className="mb-4 text-gray-700 dark:text-gray-300">The application could not connect to the Google Sheet backend. Details:</p>
+                  <p className="text-yellow-600 dark:text-yellow-400">{renderStartupError()}</p> 
+                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Please check your Google Apps Script (Spreadsheet ID, deployment permissions) and your internet connection.</p>
               </div>
           </div>
       );
@@ -714,12 +746,12 @@ export default function App() {
     if (!isOpen) return null;
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-        <div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md font-sans-readable">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 font-russo text-yellow-400"><AlertTriangleIcon className="text-yellow-400"/> {title}</h3>
-            <p className="text-gray-300 mb-6">{message}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md font-sans-readable">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 font-russo text-yellow-600 dark:text-yellow-400"><AlertTriangleIcon className="text-yellow-500 dark:text-yellow-400"/> {title}</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
             <div className="flex justify-end gap-4">
-                <button onClick={onCancel} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg font-russo">Cancel</button>
-                <button onClick={() => { onConfirm(); onCancel(); }} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg font-russo">Confirm</button>
+                <button onClick={onCancel} className="px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold rounded-lg font-russo">Cancel</button>
+                <button onClick={() => { onConfirm(); onCancel(); }} className="px-4 py-2 bg-red-600 hover:bg-red-700 dark:hover:bg-red-500 text-white font-bold rounded-lg font-russo">Confirm</button>
             </div>
         </div>
       </div>
@@ -730,32 +762,32 @@ export default function App() {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"> 
-            <div className="bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-sm text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-sm text-center">
                 <div className="flex justify-center gap-4 text-6xl mb-4">
                     <span className="animate-roll">🎲</span>
                     <span className="animate-roll" style={{animationDelay: '0.1s'}}>🎲</span>
                 </div>
-                <h3 className="text-2xl font-bold font-russo text-yellow-400">Randomizing Numbers...</h3>
+                <h3 className="text-2xl font-bold font-russo text-yellow-600 dark:text-yellow-400">Randomizing Numbers...</h3>
             </div>
         </div>
     );
   };
 
-  const StatCard = ({ icon, title, value, color = 'text-yellow-400' }) => (
-    <div className="bg-gray-700 p-4 rounded-lg flex items-center gap-4">
-      <div className={`p-2 bg-gray-800 rounded-full ${color}`}>
+  const StatCard = ({ icon, title, value, color = 'text-yellow-600 dark:text-yellow-400' }) => (
+    <div className="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg flex items-center gap-4 shadow">
+      <div className={`p-2 bg-gray-300 dark:bg-gray-800 rounded-full ${color}`}>
         {icon}
       </div>
       <div>
-        <p className="text-sm text-gray-400 font-sans-readable">{title}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-sans-readable">{title}</p>
         <p className={`text-2xl font-bold font-russo ${color}`}>{value}</p>
       </div>
     </div>
   );
 
-  // Main App Return
+  // Main App Return - Added theme classes
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-russo p-4 sm:p-6 lg:p-8 no-select"> 
+    <div className={`min-h-screen font-russo p-4 sm:p-6 lg:p-8 no-select ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-900 text-white'}`}> 
       <div className="max-w-7xl mx-auto">
         <ConfirmationModal 
             isOpen={confirmModal.isOpen} 
@@ -771,7 +803,7 @@ export default function App() {
             }} 
         />
         <RandomizingModal isOpen={isRandomizing} />
-        <header className="bg-gray-800 rounded-xl p-4 mb-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+        <header className={`rounded-xl p-4 mb-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}>
              <div className="flex items-center justify-center md:justify-start gap-4 w-full md:w-1/3">
                  <img 
                      src={settings['Away Team Logo URL']} 
@@ -779,14 +811,14 @@ export default function App() {
                      className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
                      onError={(e) => { e.target.style.display = 'none'; }} 
                  />
-                 <span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Away Team Name']}</span>
+                 <span className={`text-lg sm:text-xl font-bold ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{settings['Away Team Name']}</span>
              </div>
              <div className="text-center w-full md:w-1/3 order-first md:order-none tracking-wider">
-                 <h1 className="text-xl sm:text-3xl font-bold text-yellow-400">{settings['Title'] || 'Super Bowl Squares'}</h1>
-                 <span className="text-sm text-gray-400">{new Date().getFullYear()}</span>
+                 <h1 className={`text-xl sm:text-3xl font-bold ${theme === 'light' ? 'text-blue-600' : 'text-yellow-400'}`}>{settings['Title'] || 'Super Bowl Squares'}</h1>
+                 <span className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>{new Date().getFullYear()}</span>
              </div>
              <div className="flex items-center justify-center md:justify-end gap-4 w-full md:w-1/3">
-                 <span className="text-lg sm:text-xl font-bold text-gray-300">{settings['Home Team Name']}</span>
+                 <span className={`text-lg sm:text-xl font-bold ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{settings['Home Team Name']}</span>
                  <img 
                      src={settings['Home Team Logo URL']} 
                      alt={settings['Home Team Name']} 
@@ -796,76 +828,85 @@ export default function App() {
              </div>
         </header>
 
-        <div className="bg-gray-800 rounded-xl p-4 mb-6 shadow-lg flex flex-col sm:flex-row items-center justify-around text-center gap-4">
+        <div className={`rounded-xl p-4 mb-6 shadow-lg flex flex-col sm:flex-row items-center justify-around text-center gap-4 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}>
             <div className="flex flex-col">
-                <span className="text-sm text-gray-400 font-sans-readable">Total Pot</span>
-                <span className="text-3xl font-bold text-green-400">${totalPot}</span> 
+                <span className={`text-sm font-sans-readable ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Total Pot</span>
+                <span className="text-3xl font-bold text-green-600 dark:text-green-400">${totalPot}</span> 
             </div>
-            <div className="h-16 w-px bg-gray-600 hidden sm:block"></div>
+            <div className={`h-16 w-px hidden sm:block ${theme === 'light' ? 'bg-gray-300' : 'bg-gray-600'}`}></div>
             <div className="flex items-center gap-4 sm:gap-6 text-lg">
-                <TrophyIcon className="text-yellow-400 h-8 w-8"/>
+                <TrophyIcon className="text-yellow-500 dark:text-yellow-400 h-8 w-8"/>
                 <div className="text-left font-sans-readable">
-                    <p><span className="font-bold text-orange-400">Q1:</span> ${settings?.['Payout Q1'] || '0'}</p>
-                    <p><span className="font-bold text-yellow-300">Q2:</span> ${settings?.['Payout Q2'] || '0'}</p>
+                    <p><span className="font-bold text-orange-600 dark:text-orange-400">Q1:</span> ${settings?.['Payout Q1'] || '0'}</p>
+                    <p><span className="font-bold text-yellow-600 dark:text-yellow-300">Q2:</span> ${settings?.['Payout Q2'] || '0'}</p>
                 </div>
                 <div className="text-left font-sans-readable">
-                    <p><span className="font-bold text-blue-400">Q3:</span> ${settings?.['Payout Q3'] || '0'}</p>
-                    <p><span className="font-bold text-purple-400">Final:</span> ${settings?.['Payout Final'] || '0'}</p>
+                    <p><span className="font-bold text-blue-600 dark:text-blue-400">Q3:</span> ${settings?.['Payout Q3'] || '0'}</p>
+                    <p><span className="font-bold text-purple-600 dark:text-purple-400">Final:</span> ${settings?.['Payout Final'] || '0'}</p>
                 </div>
             </div>
         </div>
         
         <div className="flex justify-between items-center mb-4 px-2 gap-2">
             {/* --- Sync Button --- */}
-            <button onClick={() => fetchData(false)} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"> 
+            <button onClick={() => fetchData(false)} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"> 
               <RefreshCwIcon className={isRefreshing ? 'animate-spin' : ''}/>
               <span className="hidden sm:inline">Sync</span>
             </button>
-            <div className="flex items-center gap-2 text-base font-bold bg-gray-800 px-3 py-2 rounded-lg">
-              <TagIcon/>
+            <div className={`flex items-center gap-2 text-base font-bold px-3 py-2 rounded-lg ${theme === 'light' ? 'bg-white shadow' : 'bg-gray-800'}`}>
+              <TagIcon className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}/>
               <span>Cost:</span>
-              <span className="text-yellow-400">${Number(settings?.['Cost Per Square']) || 0}</span> 
+              <span className="text-yellow-600 dark:text-yellow-400">${Number(settings?.['Cost Per Square']) || 0}</span> 
             </div>
-            <button onClick={() => setShowAdminPanel(prev => !prev)} className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition-transform transform hover:scale-105">
-              <LockIcon/>
-              <span className="hidden sm:inline">Admin</span>
-            </button>
+            {/* --- NEW Theme Toggle Button --- */}
+            <div className="flex items-center gap-2">
+                 <button onClick={toggleTheme} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-transform transform hover:scale-105 ${theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
+                    {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+                     <span className="hidden sm:inline">{theme === 'light' ? 'Dark' : 'Light'}</span>
+                 </button>
+                 <button onClick={() => setShowAdminPanel(prev => !prev)} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-transform transform hover:scale-105 ${theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
+                    <LockIcon/>
+                    <span className="hidden sm:inline">Admin</span>
+                 </button>
+            </div>
+             {/* --- END Theme Toggle Button --- */}
         </div>
 
         <main className="flex flex-col lg:flex-row gap-6">
           {/* --- Grid Container --- */}
           <div className="lg:w-2/3">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-300 mb-2 tracking-widest text-center">
+             {/* Adjusted team name colors */}
+            <h2 className={`text-lg sm:text-xl font-bold mb-2 tracking-widest text-center ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
               {settings['Home Team Name']}
             </h2>
             <div className="flex items-center justify-center gap-1 sm:gap-2"> 
-              <h2 className="writing-mode-v-rl rotate-180 text-lg sm:text-xl font-bold text-gray-300 tracking-widest text-center px-1"> 
+              <h2 className={`writing-mode-v-rl rotate-180 text-base sm:text-lg font-bold tracking-widest text-center px-1 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}> 
                 {settings['Away Team Name']}
               </h2>
               {/* --- Main Grid Area --- */}
-              <div className="bg-gray-800 p-1 rounded-xl shadow-2xl relative overflow-hidden flex-1"> 
+               {/* Adjusted background color */}
+              <div className={`p-1 rounded-xl shadow-lg relative overflow-hidden flex-1 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}> 
                   <div className="grid grid-cols-11 gap-[1px] sm:gap-0.5"> 
                       
                       {/* --- MODIFIED Top-Left Corner --- */}
-                       <div className="relative aspect-square bg-gray-700 rounded-sm text-[5px] xs:text-[6px] sm:text-[9px] font-sans-readable overflow-hidden grid-cell-min-width p-[1px] sm:p-0.5">
+                       {/* Adjusted background and text color */}
+                       <div className={`relative aspect-square rounded-sm text-[5px] xs:text-[6px] sm:text-[9px] font-sans-readable overflow-hidden grid-cell-min-width p-[1px] sm:p-0.5 ${theme === 'light' ? 'bg-gray-200 text-gray-700' : 'bg-gray-700 text-gray-300'}`}>
                            {settings['Game Mode'] === '4 Quarters' && (
                                <div className="relative w-full h-full"> {/* Use relative positioning container */}
-                                   {/* Horizontal Labels - positioned absolutely at bottom */}
+                                   {/* Horizontal Labels */}
                                    <div className="absolute bottom-0 left-0 right-0 grid grid-cols-4">
-                                       <span className="col-start-1 flex items-end justify-center font-bold text-orange-400">Q1</span>
-                                       <span className="col-start-2 flex items-end justify-center font-bold text-yellow-300">Q2</span>
-                                       <span className="col-start-3 flex items-end justify-center font-bold text-blue-400">Q3</span>
-                                       {/* F is positioned separately */}
+                                       <span className="col-start-1 flex items-end justify-center font-bold text-orange-600 dark:text-orange-400">Q1</span>
+                                       <span className="col-start-2 flex items-end justify-center font-bold text-yellow-600 dark:text-yellow-300">Q2</span>
+                                       <span className="col-start-3 flex items-end justify-center font-bold text-blue-600 dark:text-blue-400">Q3</span>
                                    </div>
-                                   {/* Vertical Labels - positioned absolutely at right */}
+                                   {/* Vertical Labels */}
                                    <div className="absolute top-0 bottom-0 right-0 grid grid-rows-4">
-                                       <span className="row-start-1 flex items-center justify-end font-bold text-orange-400">Q1</span>
-                                       <span className="row-start-2 flex items-center justify-end font-bold text-yellow-300">Q2</span>
-                                       <span className="row-start-3 flex items-center justify-end font-bold text-blue-400">Q3</span>
-                                        {/* F is positioned separately */}
+                                       <span className="row-start-1 flex items-center justify-end font-bold text-orange-600 dark:text-orange-400">Q1</span>
+                                       <span className="row-start-2 flex items-center justify-end font-bold text-yellow-600 dark:text-yellow-300">Q2</span>
+                                       <span className="row-start-3 flex items-center justify-end font-bold text-blue-600 dark:text-blue-400">Q3</span>
                                    </div>
-                                    {/* Shared Final Label (Bottom Right) - positioned absolutely */}
-                                   <span className="absolute bottom-0 right-0 flex items-end justify-end font-bold text-purple-400 pr-0.5 pb-0.5">F</span>
+                                    {/* Shared Final Label */}
+                                   <span className="absolute bottom-0 right-0 flex items-end justify-end font-bold text-purple-600 dark:text-purple-400 pr-0.5 pb-0.5">F</span>
                                </div>
                            )}
                        </div>
@@ -874,13 +915,14 @@ export default function App() {
 
                       {/* 2. Home Numbers */}
                       {Array.from({ length: 10 }).map((_, colIndex) => (
-                        <div key={`home-header-${colIndex}`} className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width">
+                        <div key={`home-header-${colIndex}`} className={`flex items-center justify-center rounded-sm font-bold aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width ${theme === 'light' ? 'bg-gray-200 text-gray-700' : 'bg-gray-700 text-yellow-400'}`}>
                           {settings['Game Mode'] === '4 Quarters' ? (
                             <div className="grid grid-rows-4 gap-[1px] text-center text-[5px] xs:text-[7px] sm:text-[10px] w-full h-full font-sans-readable">
-                              <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q1?.home?.[colIndex] ?? ''}</span>
-                              <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q2?.home?.[colIndex] ?? ''}</span>
-                              <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q3?.home?.[colIndex] ?? ''}</span>
-                              <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q4?.home?.[colIndex] ?? ''}</span>
+                              {/* Adjusted number background */}
+                              <span className={`flex items-center justify-center font-bold text-orange-600 dark:text-orange-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q1?.home?.[colIndex] ?? ''}</span>
+                              <span className={`flex items-center justify-center font-bold text-yellow-600 dark:text-yellow-300 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q2?.home?.[colIndex] ?? ''}</span>
+                              <span className={`flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q3?.home?.[colIndex] ?? ''}</span>
+                              <span className={`flex items-center justify-center font-bold text-purple-600 dark:text-purple-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q4?.home?.[colIndex] ?? ''}</span>
                             </div>
                           ) : (
                             <span className="text-sm xs:text-base sm:text-lg">{fullGameNumbers?.home?.[colIndex] ?? ''}</span> 
@@ -892,13 +934,14 @@ export default function App() {
                       {Array.from({ length: 10 }).map((_, rowIndex) => (
                           <Fragment key={`row-${rowIndex}`}>
                               {/* Away Numbers */}
-                              <div className="flex items-center justify-center bg-gray-700 rounded-sm font-bold text-yellow-400 aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width">
+                              <div className={`flex items-center justify-center rounded-sm font-bold aspect-square p-[1px] sm:p-0.5 overflow-hidden grid-cell-min-width ${theme === 'light' ? 'bg-gray-200 text-gray-700' : 'bg-gray-700 text-yellow-400'}`}>
                                   {settings['Game Mode'] === '4 Quarters' ? (
                                     <div className="grid grid-cols-4 gap-[1px] text-center text-[5px] xs:text-[7px] sm:text-[10px] w-full h-full font-sans-readable"> 
-                                      <span className="flex items-center justify-center font-bold text-orange-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q1?.away?.[rowIndex] ?? ''}</span>
-                                      <span className="flex items-center justify-center font-bold text-yellow-300 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q2?.away?.[rowIndex] ?? ''}</span>
-                                      <span className="flex items-center justify-center font-bold text-blue-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q3?.away?.[rowIndex] ?? ''}</span>
-                                      <span className="flex items-center justify-center font-bold text-purple-400 bg-gray-800 rounded-sm">{fourQuarterNumbers?.q4?.away?.[rowIndex] ?? ''}</span>
+                                      {/* Adjusted number background */}
+                                      <span className={`flex items-center justify-center font-bold text-orange-600 dark:text-orange-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q1?.away?.[rowIndex] ?? ''}</span>
+                                      <span className={`flex items-center justify-center font-bold text-yellow-600 dark:text-yellow-300 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q2?.away?.[rowIndex] ?? ''}</span>
+                                      <span className={`flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q3?.away?.[rowIndex] ?? ''}</span>
+                                      <span className={`flex items-center justify-center font-bold text-purple-600 dark:text-purple-400 rounded-sm ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-800'}`}>{fourQuarterNumbers?.q4?.away?.[rowIndex] ?? ''}</span>
                                     </div>
                                   ) : (
                                     <span className="text-sm xs:text-base sm:text-lg">{fullGameNumbers?.away?.[rowIndex] ?? ''}</span> 
@@ -920,18 +963,20 @@ export default function App() {
                                           if (quarter === 'Q4') { winnerClasses.push('border-purple-500'); winnerBadges.push({q: 'F', c: 'bg-purple-500'}); } 
                                       } 
                                   });
+                                   // Adjusted border colors and square background/hover
+                                  const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-2 sm:border-4' : isSelected ? 'border-2 sm:border-4 border-green-500' : claimed && !claimed.paid ? 'border border-red-500 sm:border-2' : `border ${theme === 'light' ? 'border-gray-300' : 'border-gray-600'} sm:border-2`; 
+                                  const bgClass = claimed ? (theme === 'light' ? 'bg-gray-100' : 'bg-gray-700') : (theme === 'light' ? 'bg-white hover:bg-gray-100' : 'bg-gray-900 hover:bg-gray-700');
 
-                                  const borderClass = winnerClasses.length > 0 ? winnerClasses.join(' ') + ' border-2 sm:border-4' : isSelected ? 'border-2 sm:border-4 border-green-500' : claimed && !claimed.paid ? 'border border-red-500 sm:border-2' : 'border border-gray-600 sm:border-2'; 
-                                  
                                   return (
                                     <div 
                                       key={squareNumber} 
                                       onClick={() => handleSquareClick(squareNumber)} 
-                                      className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${claimed ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'} grid-cell-min-width`}
+                                      className={`relative aspect-square flex flex-col items-center justify-center rounded-sm transition-all duration-200 cursor-pointer ${borderClass} ${bgClass} grid-cell-min-width`}
                                     >
-                                      <span className="absolute top-0 left-0.5 text-[5px] xs:text-[6px] sm:text-[9px] text-gray-500 font-sans-readable">{squareNumber}</span> 
-                                      {claimed && <span className="text-[6px] xs:text-[7px] sm:text-[10px] font-semibold text-center break-all px-0.5 font-sans-readable">{claimed.initials || claimed.name}</span>} 
-                                      {winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[5px] xs:text-[6px] font-bold px-0.5 sm:px-1 rounded-full text-gray-900 ${b.c}`}>{b.q}</span>))}</div>} 
+                                       {/* Adjusted text colors */}
+                                      <span className={`absolute top-0 left-0.5 text-[5px] xs:text-[6px] sm:text-[9px] font-sans-readable ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'}`}>{squareNumber}</span> 
+                                      {claimed && <span className={`text-[6px] xs:text-[7px] sm:text-[10px] font-semibold text-center break-all px-0.5 font-sans-readable ${theme === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>{claimed.initials || claimed.name}</span>} 
+                                      {winnerBadges.length > 0 && <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5">{winnerBadges.map(b => (<span key={b.q} className={`text-[5px] xs:text-[6px] font-bold px-0.5 sm:px-1 rounded-full ${b.c} ${theme === 'light' ? 'text-white': 'text-gray-900'}`}>{b.q}</span>))}</div>} 
                                     </div>
                                   );
                               })}
@@ -942,33 +987,44 @@ export default function App() {
             </div>
 
             {/* Legend */}
-            <div className="mt-4 bg-gray-800 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm font-sans-readable">
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-gray-600 bg-gray-900"></div><span>Available</span></div>
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-2 border-red-500 bg-gray-700"></div><span>Claimed (Unpaid)</span></div>
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-orange-500 bg-gray-700"></div><span>Q1 Winner</span></div>
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-yellow-400 bg-gray-700"></div><span>Q2 Winner</span></div>
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-blue-500 bg-gray-700"></div><span>Q3 Winner</span></div>
-                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded border-4 border-purple-500 bg-gray-700"></div><span>Final Winner</span></div>
+             {/* Adjusted background and text colors */}
+            <div className={`mt-4 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-2 justify-center text-sm font-sans-readable ${theme === 'light' ? 'bg-white shadow' : 'bg-gray-800'}`}>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-2 ${theme === 'light' ? 'border-gray-300 bg-white' : 'border-gray-600 bg-gray-900'}`}></div><span>Available</span></div>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-2 border-red-500 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}></div><span>Claimed (Unpaid)</span></div>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-4 border-orange-500 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}></div><span>Q1 Winner</span></div>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-4 border-yellow-400 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}></div><span>Q2 Winner</span></div>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-4 border-blue-500 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}></div><span>Q3 Winner</span></div>
+                <div className="flex items-center gap-2"><div className={`w-4 h-4 rounded border-4 border-purple-500 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}></div><span>Final Winner</span></div>
             </div>
           </div>
 
           {/* --- Claim Form (Right Side) --- */}
-          <div className="lg:w-1/3 bg-gray-800 p-6 rounded-xl shadow-lg font-sans-readable">
-            <h2 className="text-2xl font-bold mb-4 text-center text-yellow-400 font-russo">Claim Your Squares</h2>
+           {/* Adjusted background, text, input styles */}
+          <div className={`lg:w-1/3 p-6 rounded-xl shadow-lg font-sans-readable ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}>
+            <h2 className={`text-2xl font-bold mb-4 text-center font-russo ${theme === 'light' ? 'text-blue-600' : 'text-yellow-400'}`}>Claim Your Squares</h2>
             <form onSubmit={handleClaimSubmit}>
-              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="name">Your Name</label><input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} required className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div> 
-              <div className="mb-4"><label className="block text-gray-400 mb-2" htmlFor="initials">Your Initials (Max 3)</label><input type="text" id="initials" value={formInitials} onChange={(e) => setFormInitials(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} required className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/></div> 
-              <div className="mb-4"><label className="block text-gray-400 mb-2">Selected Squares ({selectedSquares.length})</label><div className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 min-h-[44px] break-words">{selectedSquares.length > 0 ? selectedSquares.sort((a,b) => a - b).join(', ') : <span className="text-gray-500">Click squares on the grid</span>}</div></div>
+              <div className="mb-4">
+                  <label className={`block mb-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="name">Your Name</label>
+                  <input type="text" id="name" value={formName} onChange={(e) => setFormName(e.target.value)} required className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500 text-gray-900' : 'bg-gray-700 border-gray-600 focus:border-yellow-400 text-white'}`}/>
+              </div> 
+              <div className="mb-4">
+                  <label className={`block mb-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="initials">Your Initials (Max 3)</label>
+                  <input type="text" id="initials" value={formInitials} onChange={(e) => setFormInitials(e.target.value.toUpperCase().slice(0, 3))} maxLength={3} required className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500 text-gray-900' : 'bg-gray-700 border-gray-600 focus:border-yellow-400 text-white'}`}/>
+              </div> 
+              <div className="mb-4">
+                  <label className={`block mb-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Selected Squares ({selectedSquares.length})</label>
+                  <div className={`border-2 rounded-lg p-2 min-h-[44px] break-words ${theme === 'light' ? 'bg-gray-100 border-gray-300 text-gray-800' : 'bg-gray-700 border-gray-600 text-gray-200'}`}>
+                      {selectedSquares.length > 0 ? selectedSquares.sort((a,b) => a - b).join(', ') : <span className={theme === 'light' ? 'text-gray-400' : 'text-gray-500'}>Click squares on the grid</span>}
+                  </div>
+              </div>
               <div className="flex gap-2 mb-4">
                   <input 
                       type="number" 
                       placeholder="#" 
                       value={numToRandomize} 
                       onChange={e => setNumToRandomize(e.target.value)} 
-                      className="w-1/3 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400 text-center" 
-                      min="1" 
-                      step="1" 
-                      pattern="\d*" 
+                      className={`w-1/3 border-2 rounded-lg p-2 focus:outline-none text-center ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500 text-gray-900' : 'bg-gray-700 border-gray-600 focus:border-yellow-400 text-white'}`}
+                      min="1" step="1" pattern="\d*" 
                   />
                   <button type="button" onClick={handleRandomizeSelection} className="w-2/3 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 font-russo">
                     <Dice5Icon/> Pick Random
@@ -976,12 +1032,12 @@ export default function App() {
               </div>
               {/* --- PAYMENT METHOD SECTION --- */}
               <div className="mb-4"> 
-                  <label className="block text-gray-400 mb-2" htmlFor="payment">Payment Method</label>
+                  <label className={`block mb-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="payment">Payment Method</label>
                   <select 
                       id="payment" 
                       value={formPaymentMethod} 
                       onChange={e => setFormPaymentMethod(e.target.value)} 
-                      className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"
+                      className={`w-full border-2 rounded-lg p-2 focus:outline-none appearance-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500 text-gray-900' : 'bg-gray-700 border-gray-600 focus:border-yellow-400 text-white'}`}
                       required 
                   >
                        <option value="" disabled={formPaymentMethod !== ""}>Select method</option> 
@@ -990,15 +1046,15 @@ export default function App() {
               </div>
                {/* Display payment account info */}
               {formPaymentMethod && settings[`${formPaymentMethod} Account`] && (
-                <div className="mb-4 -mt-2 text-center bg-gray-700 p-2 rounded-lg">
-                    <p className="text-sm text-gray-400">Send payment to:</p>
-                    <p className="font-bold text-yellow-300 break-words">{settings[`${formPaymentMethod} Account`]}</p> 
+                <div className={`mb-4 -mt-2 text-center p-2 rounded-lg ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}>
+                    <p className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Send payment to:</p>
+                    <p className={`font-bold break-words ${theme === 'light' ? 'text-blue-600' : 'text-yellow-300'}`}>{settings[`${formPaymentMethod} Account`]}</p> 
                 </div>
               )}
 
-              <div className="bg-gray-900 rounded-lg p-4 text-center mb-4 font-russo">
-                <p className="text-gray-400">Total Cost</p>
-                <p className="text-3xl font-bold text-green-400">${selectedSquares.length * (Number(settings?.['Cost Per Square']) || 0)}</p> 
+              <div className={`rounded-lg p-4 text-center mb-4 font-russo ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-900'}`}>
+                <p className={theme === 'light' ? 'text-gray-500' : 'text-gray-400'}>Total Cost</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">${selectedSquares.length * (Number(settings?.['Cost Per Square']) || 0)}</p> 
               </div>
               <button 
                   type="submit" 
@@ -1012,18 +1068,25 @@ export default function App() {
         </main>
 
         {/* --- ADMIN PANEL MODAL --- */}
-        {showAdminPanel && (<div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 p-4"><div className="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto relative font-sans-readable">
-            <button onClick={() => setShowAdminPanel(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl">&times;</button><h2 className="text-2xl font-bold mb-6 text-center text-yellow-400 font-russo">Admin Panel</h2>
-            {!isAdmin ? (<form onSubmit={handleAdminLogin} className="flex flex-col items-center"><label className="text-gray-400 mb-2" htmlFor="admin-pass">Enter Admin Password</label><input type="password" id="admin-pass" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="bg-gray-700 border-2 border-gray-600 rounded-lg p-2 mb-4 w-64 focus:outline-none focus:border-yellow-400"/><button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg font-russo">Login</button></form>)
+        {/* Adjusted styles for theme */}
+        {showAdminPanel && (<div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 p-4"><div className={`rounded-xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto relative font-sans-readable ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'}`}>
+            <button onClick={() => setShowAdminPanel(false)} className={`absolute top-4 right-4 text-3xl ${theme === 'light' ? 'text-gray-500 hover:text-gray-800' : 'text-gray-400 hover:text-white'}`}>&times;</button>
+            <h2 className={`text-2xl font-bold mb-6 text-center font-russo ${theme === 'light' ? 'text-blue-600' : 'text-yellow-400'}`}>Admin Panel</h2>
+            {!isAdmin ? (<form onSubmit={handleAdminLogin} className="flex flex-col items-center">
+                <label className={`mb-2 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="admin-pass">Enter Admin Password</label>
+                <input type="password" id="admin-pass" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className={`border-2 rounded-lg p-2 mb-4 w-64 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg font-russo">Login</button>
+            </form>)
             : (
             <>
               {/* --- STATS SECTION --- */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <StatCard icon={<DollarSignIcon />} title="Total Pot" value={`$${totalPot}`} color="text-green-400" />
-                <StatCard icon={<GridIcon />} title="Squares Claimed" value={adminStats.totalClaimed} color="text-blue-400" />
-                <StatCard icon={<GridIcon />} title="Squares Available" value={adminStats.totalAvailable} />
-                <StatCard icon={<CheckCircleIcon />} title="Players Paid" value={adminStats.totalPaid} color="text-green-400" />
-                <StatCard icon={<XCircleIcon />} title="Players Unpaid" value={adminStats.totalUnpaid} color="text-red-400" />
+                 {/* StatCard already handles theme */}
+                <StatCard icon={<DollarSignIcon />} title="Total Pot" value={`$${totalPot}`} color="text-green-600 dark:text-green-400" />
+                <StatCard icon={<GridIcon />} title="Squares Claimed" value={adminStats.totalClaimed} color="text-blue-600 dark:text-blue-400" />
+                <StatCard icon={<GridIcon />} title="Squares Available" value={adminStats.totalAvailable} color={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}/>
+                <StatCard icon={<CheckCircleIcon />} title="Players Paid" value={adminStats.totalPaid} color="text-green-600 dark:text-green-400" />
+                <StatCard icon={<XCircleIcon />} title="Players Unpaid" value={adminStats.totalUnpaid} color="text-red-600 dark:text-red-400" />
               </div>
 
               {/* --- Main Admin Content --- */}
@@ -1035,21 +1098,21 @@ export default function App() {
                     // --- EDIT PLAYER FORM ---
                     <div>
                       <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><EditIcon/> Edit Player</h3>
-                      <div className="bg-gray-700 p-4 rounded-lg space-y-4">
+                      <div className={`p-4 rounded-lg space-y-4 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}>
                         <div>
-                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-name">Name</label>
-                          <input type="text" id="edit-name" value={editingPlayer?.Name || ''} readOnly className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400 opacity-70 cursor-not-allowed"/>
+                          <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="edit-name">Name</label>
+                          <input type="text" id="edit-name" value={editingPlayer?.Name || ''} readOnly className={`w-full border-2 rounded-lg p-2 focus:outline-none opacity-70 cursor-not-allowed ${theme === 'light' ? 'bg-gray-200 border-gray-400' : 'bg-gray-600 border-gray-500'}`}/>
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-initials">Initials (Max 3)</label>
-                          <input type="text" id="edit-initials" value={editingPlayer?.Initials || ''} onChange={(e) => handleEditingPlayerChange('Initials', e.target.value)} maxLength={3} className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                          <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="edit-initials">Initials (Max 3)</label>
+                          <input type="text" id="edit-initials" value={editingPlayer?.Initials || ''} onChange={(e) => handleEditingPlayerChange('Initials', e.target.value)} maxLength={3} className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-white border-gray-300 focus:border-blue-500' : 'bg-gray-600 border-gray-500 focus:border-yellow-400'}`}/>
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="edit-squares">Squares (comma-separated)</label>
-                          <input type="text" id="edit-squares" value={editingPlayer?.Squares || ''} onChange={(e) => handleEditingPlayerChange('Squares', e.target.value)} className="w-full bg-gray-600 border-2 border-gray-500 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                          <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="edit-squares">Squares (comma-separated)</label>
+                          <input type="text" id="edit-squares" value={editingPlayer?.Squares || ''} onChange={(e) => handleEditingPlayerChange('Squares', e.target.value)} className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-white border-gray-300 focus:border-blue-500' : 'bg-gray-600 border-gray-500 focus:border-yellow-400'}`}/>
                         </div>
                         <div className="flex gap-4">
-                          <button onClick={() => setEditingPlayer(null)} className="w-1/2 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg font-russo">Cancel</button>
+                          <button onClick={() => setEditingPlayer(null)} className={`w-1/2 font-bold py-2 px-4 rounded-lg font-russo ${theme === 'light' ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-gray-500 hover:bg-gray-400 text-white'}`}>Cancel</button>
                           <button onClick={handleUpdatePlayer} className="w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg font-russo flex items-center justify-center gap-2"><SaveIcon /> Save</button>
                         </div>
                       </div>
@@ -1061,26 +1124,27 @@ export default function App() {
                       <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
                         {players && players.length > 0 ? players.map(player => (
                           player && player.Name && ( 
-                            <div key={player.Name} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center gap-2"> 
+                            <div key={player.Name} className={`p-3 rounded-lg flex justify-between items-center gap-2 ${theme === 'light' ? 'bg-gray-100' : 'bg-gray-700'}`}> 
                               <div className="flex-1 min-w-0"> 
-                                <p className="font-bold truncate">{player.Name} ({player.Initials})</p> 
-                                <p className="text-sm text-gray-400">{String(player.Squares || '').split(',').filter(Boolean).length} squares - ${player.Cost} ({player.PaymentMethod})</p>
+                                <p className={`font-bold truncate ${theme === 'light' ? 'text-gray-800' : 'text-white'}`}>{player.Name} ({player.Initials})</p> 
+                                <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>{String(player.Squares || '').split(',').filter(Boolean).length} squares - ${player.Cost} ({player.PaymentMethod})</p>
                               </div>
                               <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0"> 
-                                <button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : 'text-gray-400 hover:bg-green-600 hover:text-white'}`}><CheckCircleIcon/></button>
-                                <button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : 'text-gray-400 hover:bg-red-600 hover:text-white'}`}><XCircleIcon/></button>
-                                <button onClick={() => setEditingPlayer(player)} className="p-1 rounded-full text-blue-400 hover:bg-blue-500 hover:text-white"><EditIcon/></button>
-                                <button onClick={() => handleDeletePlayer(player.Name)} className="p-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white"><Trash2Icon/></button>
+                                <button onClick={() => handleMarkAsPaid(player.Name, 'Yes')} className={`p-1 rounded-full ${player.Paid === 'Yes' ? 'bg-green-500 text-white' : `${theme === 'light' ? 'text-gray-500 hover:bg-green-100 hover:text-green-600' : 'text-gray-400 hover:bg-green-600 hover:text-white'}`}`}><CheckCircleIcon/></button>
+                                <button onClick={() => handleMarkAsPaid(player.Name, 'No')} className={`p-1 rounded-full ${player.Paid === 'No' ? 'bg-red-500 text-white' : `${theme === 'light' ? 'text-gray-500 hover:bg-red-100 hover:text-red-600' : 'text-gray-400 hover:bg-red-600 hover:text-white'}`}`}><XCircleIcon/></button>
+                                <button onClick={() => setEditingPlayer(player)} className={`p-1 rounded-full ${theme === 'light' ? 'text-blue-500 hover:bg-blue-100' : 'text-blue-400 hover:bg-blue-500 hover:text-white'}`}><EditIcon/></button>
+                                <button onClick={() => handleDeletePlayer(player.Name)} className={`p-1 rounded-full ${theme === 'light' ? 'text-red-500 hover:bg-red-100' : 'text-red-500 hover:bg-red-500 hover:text-white'}`}><Trash2Icon/></button>
                               </div>
                             </div>
                           )
-                        )) : <p className="text-gray-400 text-center py-4">No players have claimed squares yet.</p>}
+                        )) : <p className={`text-center py-4 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>No players have claimed squares yet.</p>}
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* --- COLUMN 2: Game Settings & Scores --- */}
+                {/* Input styles adjusted for theme */}
                 <div className="lg:col-span-1 space-y-6">
                   <div>
                     <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><Dice5Icon/> Randomize Numbers</h3>
@@ -1088,7 +1152,7 @@ export default function App() {
                       <button onClick={() => handleRandomizeNumbers('Full Game')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for full game'} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">Full Game</button>
                       <button onClick={() => handleRandomizeNumbers('4 Quarters')} disabled={claimedSquaresMap.size < 100} title={claimedSquaresMap.size < 100 ? 'All squares must be claimed first' : 'Randomize numbers for 4 quarters'} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg font-russo disabled:opacity-50 disabled:cursor-not-allowed">4 Quarters</button>
                     </div>
-                     {claimedSquaresMap.size < 100 && <p className="text-xs text-yellow-400 mt-2 text-center">({100 - claimedSquaresMap.size} more squares needed)</p>}
+                     {claimedSquaresMap.size < 100 && <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2 text-center">({100 - claimedSquaresMap.size} more squares needed)</p>}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><TrophyIcon/> Enter & Update Scores</h3>
@@ -1102,7 +1166,7 @@ export default function App() {
                                 placeholder={settings['Away Team Name']} 
                                 value={score['Away Score'] ?? ''} 
                                 onChange={(e) => handleLocalScoreChange(score.Quarter, 'Away Score', e.target.value)} 
-                                className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1 focus:outline-none focus:border-yellow-400"
+                                className={`w-full border-2 text-center rounded-lg p-1 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}
                                 min="0" 
                             />
                             <input 
@@ -1110,7 +1174,7 @@ export default function App() {
                                 placeholder={settings['Home Team Name']} 
                                 value={score['Home Score'] ?? ''} 
                                 onChange={(e) => handleLocalScoreChange(score.Quarter, 'Home Score', e.target.value)} 
-                                className="w-full bg-gray-700 border-2 text-center border-gray-600 rounded-lg p-1 focus:outline-none focus:border-yellow-400"
+                                className={`w-full border-2 text-center rounded-lg p-1 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}
                                 min="0" 
                             />
                             <button onClick={() => handleScoreUpdate(score.Quarter)} className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Save</button>
@@ -1119,73 +1183,72 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                  <div className="border-t border-gray-700 pt-6">
+                  <div className={`pt-6 ${theme === 'light' ? 'border-t border-gray-300' : 'border-t border-gray-700'}`}>
                     <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><AlertTriangleIcon className="text-red-500"/> New Game</h3>
                     <button onClick={handleNewGame} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg font-russo">Clear All Data</button>
-                    <p className="text-xs text-gray-400 mt-2">Deletes all players, scores, and numbers. Settings will be kept.</p>
+                    <p className={`text-xs mt-2 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Deletes all players, scores, and numbers. Settings will be kept.</p>
                   </div>
                 </div>
 
                 {/* --- COLUMN 3: App Settings --- */}
+                 {/* Input styles adjusted for theme */}
                 <div className="lg:col-span-1 space-y-4">
                   <h3 className="text-xl font-bold mb-3 flex items-center gap-2 font-russo"><SlidersIcon/> App & Game Settings</h3>
                   
                   {/* General Settings */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-title">Title</label>
-                      <input id="setting-title" type="text" value={localSettings['Title'] || ''} onChange={(e) => handleSettingChange('Title', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                      <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-title">Title</label>
+                      <input id="setting-title" type="text" value={localSettings['Title'] || ''} onChange={(e) => handleSettingChange('Title', e.target.value)} className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-cost">Cost Per Square</label>
-                      <input id="setting-cost" type="number" value={localSettings['Cost Per Square'] || ''} onChange={(e) => handleSettingChange('Cost Per Square', e.target.value)} min="0" className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                      <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-cost">Cost Per Square</label>
+                      <input id="setting-cost" type="number" value={localSettings['Cost Per Square'] || ''} onChange={(e) => handleSettingChange('Cost Per Square', e.target.value)} min="0" className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                     </div>
                   </div>
 
                   {/* Team Settings */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-home-name">Home Team Name</label>
-                      <input id="setting-home-name" type="text" value={localSettings['Home Team Name'] || ''} onChange={(e) => handleSettingChange('Home Team Name', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                      <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-home-name">Home Team Name</label>
+                      <input id="setting-home-name" type="text" value={localSettings['Home Team Name'] || ''} onChange={(e) => handleSettingChange('Home Team Name', e.target.value)} className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-away-name">Away Team Name</label>
-                      <input id="setting-away-name" type="text" value={localSettings['Away Team Name'] || ''} onChange={(e) => handleSettingChange('Away Team Name', e.target.value)} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                      <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-away-name">Away Team Name</label>
+                      <input id="setting-away-name" type="text" value={localSettings['Away Team Name'] || ''} onChange={(e) => handleSettingChange('Away Team Name', e.target.value)} className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-home-logo">Home Team Logo URL</label>
-                    <input id="setting-home-logo" type="text" value={localSettings['Home Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Home Team Logo URL', e.target.value)} placeholder="https://..." className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-home-logo">Home Team Logo URL</label>
+                    <input id="setting-home-logo" type="text" value={localSettings['Home Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Home Team Logo URL', e.target.value)} placeholder="https://..." className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-away-logo">Away Team Logo URL</label>
-                    <input id="setting-away-logo" type="text" value={localSettings['Away Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Away Team Logo URL', e.target.value)} placeholder="https://..." className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400"/>
+                    <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-away-logo">Away Team Logo URL</label>
+                    <input id="setting-away-logo" type="text" value={localSettings['Away Team Logo URL'] || ''} onChange={(e) => handleSettingChange('Away Team Logo URL', e.target.value)} placeholder="https://..." className={`w-full border-2 rounded-lg p-2 focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}/>
                   </div>
                   
                   {/* --- MODIFIED PAYOUTS SECTION --- */}
-                  <div className="space-y-3 border-t border-gray-700 pt-4"> {/* Added border and padding */}
-                     <p className="text-sm font-bold text-gray-400 mb-1">Payouts (Percentage of Total Pot: ${totalPot})</p>
+                  <div className={`space-y-3 pt-4 ${theme === 'light' ? 'border-t border-gray-300' : 'border-t border-gray-700'}`}> 
+                     <p className={`text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Payouts (Percentage of Total Pot: ${totalPot})</p>
                     {['Q1', 'Q2', 'Q3', 'Final'].map(q => {
                         const amountKey = `Payout ${q}`;
                         const percentKey = `${amountKey} Percent`;
-                        // Display the dollar amount dynamically calculated from the current percentage in localSettings
                         const displayAmount = calculatePayoutAmount(percentKey); 
                         return (
-                            <div key={q} className="grid grid-cols-[auto,1fr,auto] gap-2 items-center"> {/* Changed grid template */}
-                                <label className="block text-sm font-bold text-gray-400 justify-self-end" htmlFor={`setting-payout-${q}-percent`}>{q}:</label> {/* Right align label */}
-                                <div className="flex items-center justify-center"> {/* Center input group */}
+                            <div key={q} className="grid grid-cols-[auto,1fr,auto] gap-2 items-center"> 
+                                <label className={`block text-sm font-bold justify-self-end ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor={`setting-payout-${q}-percent`}>{q}:</label> 
+                                <div className="flex items-center justify-center"> 
                                     <input 
                                         id={`setting-payout-${q}-percent`}
                                         type="number" 
-                                        value={localSettings[percentKey] ?? ''} // Use nullish coalescing
+                                        value={localSettings[percentKey] ?? ''} 
                                         onChange={(e) => handleSettingChange(percentKey, e.target.value)} 
                                         min="0" max="100" step="1"
-                                        className="w-16 bg-gray-700 border-2 border-gray-600 rounded-lg p-2 text-center focus:outline-none focus:border-yellow-400"
+                                        className={`w-16 border-2 rounded-lg p-2 text-center focus:outline-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}
                                     />
-                                    <span className="ml-1 text-gray-400">%</span>
+                                    <span className={`ml-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>%</span>
                                 </div>
-                                {/* Use displayAmount which reacts to changes */}
-                                <span className="text-sm text-gray-400 justify-self-start">= ${displayAmount}</span> {/* Left align amount */}
+                                <span className={`text-sm justify-self-start ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}> = ${displayAmount}</span> 
                             </div>
                         );
                     })}
@@ -1194,9 +1257,9 @@ export default function App() {
 
 
                   {/* Game Mode */}
-                  <div className="border-t border-gray-700 pt-4"> {/* Added border and padding */}
-                    <label className="block text-sm font-bold text-gray-400 mb-1" htmlFor="setting-game-mode">Game Mode</label>
-                    <select id="setting-game-mode" value={localSettings['Game Mode'] || '4 Quarters'} onChange={handleGameModeChange} className="w-full bg-gray-700 border-2 border-gray-600 rounded-lg p-2 focus:outline-none focus:border-yellow-400">
+                  <div className={`pt-4 ${theme === 'light' ? 'border-t border-gray-300' : 'border-t border-gray-700'}`}> 
+                    <label className={`block text-sm font-bold mb-1 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} htmlFor="setting-game-mode">Game Mode</label>
+                    <select id="setting-game-mode" value={localSettings['Game Mode'] || '4 Quarters'} onChange={handleGameModeChange} className={`w-full border-2 rounded-lg p-2 focus:outline-none appearance-none ${theme === 'light' ? 'bg-gray-100 border-gray-300 focus:border-blue-500' : 'bg-gray-700 border-gray-600 focus:border-yellow-400'}`}>
                       <option value="4 Quarters">4 Quarters</option>
                       <option value="Full Game">Full Game</option>
                     </select>
@@ -1214,7 +1277,12 @@ export default function App() {
         </div></div>)}
 
         {/* --- Toast Notification --- */}
-        {toast.show && (<div className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out font-sans-readable ${toast.type === 'error' ? 'bg-red-600 text-white' : toast.type === 'warning' ? 'bg-yellow-500 text-black' : 'bg-green-600 text-white'}`}><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
+        {/* Adjusted style for theme */}
+        {toast.show && (<div className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out font-sans-readable ${
+             toast.type === 'error' ? 'bg-red-600 text-white' 
+           : toast.type === 'warning' ? 'bg-yellow-400 text-black' 
+           : theme === 'light' ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-green-600 text-white'}`}
+          ><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
       </div>
     </div>
   );
