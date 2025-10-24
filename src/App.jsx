@@ -25,6 +25,8 @@ const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height
 // Sun/Moon icons for theme toggle
 const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+// NEW: Help/Info Icon
+const HelpCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>;
 
 
 // --- CORE APPLICATION --- //
@@ -51,6 +53,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false); // NEW: State for instructions modal
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [isRefreshing, setIsRefreshing] = useState(false); // Only for visual indicator
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -836,6 +839,53 @@ export default function App() {
       );
   }
 
+  // --- NEW: Instructions Modal Component ---
+  const InstructionsModal = ({ isOpen, onClose }) => {
+      if (!isOpen) return null;
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className={`rounded-xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto relative font-sans-readable ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white'}`}>
+              <button onClick={onClose} className={`absolute top-4 right-4 text-3xl ${theme === 'light' ? 'text-gray-500 hover:text-gray-800' : 'text-gray-400 hover:text-white'}`}>&times;</button>
+              <h2 className={`text-2xl font-bold mb-4 text-center font-russo ${theme === 'light' ? 'text-blue-600' : 'text-yellow-400'}`}>How to Play</h2>
+              
+              <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                  <div>
+                      <h3 className="font-bold text-lg mb-1">Claiming Squares</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                          <li>Enter your full <b className="text-yellow-600 dark:text-yellow-400">Name</b> and a unique 3-letter <b className="text-yellow-600 dark:text-yellow-400">Initial</b>.</li>
+                          <li>Select your payment method.</li>
+                          <li>Click on any available squares on the grid (dark grey). Selected squares will turn green.</li>
+                          <li>Click "Claim Squares" to submit. Your initials will appear on the grid.</li>
+                      </ul>
+                  </div>
+                  
+                  <div>
+                      <h3 className="font-bold text-lg mb-1">Adding More Squares</h3>
+                       <ul className="list-disc list-inside space-y-1">
+                          <li>To claim more squares later, just enter the <b className="text-yellow-600 dark:text-yellow-400">exact same Name and Initials</b>.</li>
+                          <li>Select your new squares and click "Claim Squares".</li>
+                          <li>The new squares will be added to your existing entry automatically.</li>
+                      </ul>
+                  </div>
+
+                  <div>
+                      <h3 className="font-bold text-lg mb-1">Winning</h3>
+                       <ul className="list-disc list-inside space-y-1">
+                          <li>Once all 100 squares are filled, the Admin will randomize the numbers (0-9) for both the Home (top) and Away (side) teams.</li>
+                          <li>At the end of Q1, Q2, Q3, and the Final Score, the last digit of each team's score determines the winner.</li>
+                          <li><b>Example:</b> If the score is Home 1<b className="text-red-500">7</b> - Away 1<b className="text-blue-500">4</b> at the end of Q1, the player who owns the square at the intersection of Home "<b className="text-red-500">7</b>" and Away "<b className="text-blue-500">4</b>" wins the Q1 prize.</li>
+                      </ul>
+                  </div>
+              </div>
+
+               <div className="flex justify-end mt-6">
+                <button onClick={onClose} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg font-russo">Got it!</button>
+            </div>
+          </div>
+        </div>
+      );
+  };
+  // --- END Instructions Modal ---
 
   const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
     if (!isOpen) return null;
@@ -898,6 +948,10 @@ export default function App() {
             }} 
         />
         <RandomizingModal isOpen={isRandomizing} />
+        {/* --- NEW: Render Instructions Modal --- */}
+        <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
+        {/* --- END NEW --- */}
+
         <header className={`rounded-xl p-4 mb-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}>
              <div className="flex items-center justify-center md:justify-start gap-4 w-full md:w-1/3">
                  <img 
@@ -953,8 +1007,12 @@ export default function App() {
               <span>Cost:</span>
               <span className="text-yellow-600 dark:text-yellow-400">${Number(settings?.['Cost Per Square']) || 0}</span> 
             </div>
-            {/* --- Theme Toggle Button --- */}
+            {/* --- MODIFIED: Added Help Button --- */}
             <div className="flex items-center gap-2">
+                 <button onClick={() => setShowInstructions(true)} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-transform transform hover:scale-105 ${theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
+                    <HelpCircleIcon />
+                     <span className="hidden sm:inline">Help</span>
+                 </button>
                  <button onClick={toggleTheme} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-transform transform hover:scale-105 ${theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
                     {theme === 'light' ? <MoonIcon /> : <SunIcon />}
                      <span className="hidden sm:inline">{theme === 'light' ? 'Dark' : 'Light'}</span>
@@ -964,20 +1022,21 @@ export default function App() {
                     <span className="hidden sm:inline">Admin</span>
                  </button>
             </div>
-             {/* --- END Theme Toggle Button --- */}
+             {/* --- END MODIFICATION --- */}
         </div>
 
         <main className="flex flex-col lg:flex-row gap-6">
           {/* --- Grid Container --- */}
           <div className="lg:w-2/3">
-             {/* Adjusted team name colors */}
-            <h2 className={`text-lg sm:text-xl font-bold mb-2 tracking-widest text-center ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+             {/* MODIFIED: Smaller team names */}
+            <h2 className={`text-base sm:text-xl font-bold mb-2 tracking-widest text-center ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
               {settings['Home Team Name']}
             </h2>
             <div className="flex items-center justify-center gap-1 sm:gap-2"> 
-              <h2 className={`writing-mode-v-rl rotate-180 text-base sm:text-lg font-bold tracking-widest text-center px-1 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}> 
+              <h2 className={`writing-mode-v-rl rotate-180 text-sm sm:text-lg font-bold tracking-widest text-center px-1 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}> 
                 {settings['Away Team Name']}
               </h2>
+               {/* --- END MODIFICATION --- */}
               {/* --- Main Grid Area --- */}
                {/* Adjusted background color */}
               <div className={`p-1 rounded-xl shadow-lg relative overflow-hidden flex-1 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}> 
