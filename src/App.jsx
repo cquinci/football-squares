@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, Fragment, useRef } fr
 
 // --- CONFIGURATION --- //
 // UPDATED API URL:
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzcOHZmaty10-PocD2u2pf5nk9GH3T0QzB30Lc13tFT9sexw9WrypJgZ_67BVHeE0xWSA/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxktTwBcumfssA3YPL93UMwtrfZccGpEFA_olmHTfJj63UeRPYlERKNPfkvWExA9-YioA/exec';
 
 // --- HELPER ICONS --- //
 // Adjusted icons to use currentColor for better theme compatibility
@@ -22,7 +22,7 @@ const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height
 const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>;
 const DollarSignIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>;
 const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>;
-// NEW: Sun/Moon icons for theme toggle
+// Sun/Moon icons for theme toggle
 const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
 
@@ -40,7 +40,7 @@ export default function App() {
   const [fourQuarterNumbers, setFourQuarterNumbers] = useState({ q1: {}, q2: {}, q3: {}, q4: {} });
   const [isLoading, setIsLoading] = useState(true);
   const [startupError, setStartupError] = useState(null);
-  const [theme, setTheme] = useState('dark'); // NEW: Theme state ('light' or 'dark')
+  const [theme, setTheme] = useState('dark'); // Theme state ('light' or 'dark')
 
   // UI State
   const [selectedSquares, setSelectedSquares] = useState([]);
@@ -66,19 +66,6 @@ export default function App() {
   const isFetchingRef = useRef(false); // Ref to prevent simultaneous fetches
   const toastTimerRef = useRef(null); // Ref to manage toast timeout
 
-  // --- DERIVED STATE & CALCULATIONS --- //
-  const totalPot = useMemo(() => {
-    const cost = Number(isAdmin ? localSettings['Cost Per Square'] : settings['Cost Per Square']) || 0;
-    return cost * 100; 
-  }, [settings, localSettings, isAdmin]);
-
-  const calculatePayoutAmount = useCallback((percentKey) => {
-    const percent = Number(localSettings[percentKey]) || 0;
-    const calculated = totalPot > 0 ? Math.round((percent / 100) * totalPot) : 0;
-    return calculated;
-  }, [localSettings, totalPot]);
-
-
   // --- TOAST FUNCTION --- // 
   const showToast = useCallback((message, type = 'success') => {
     // Clear existing timer if any
@@ -93,173 +80,13 @@ export default function App() {
     }, 3000);
   }, []); // No dependencies needed
 
+  
+  // --- DERIVED STATE & MEMOIZATION (MOVED UP) --- //
+  const totalPot = useMemo(() => {
+    const cost = Number(isAdmin ? localSettings['Cost Per Square'] : settings['Cost Per Square']) || 0;
+    return cost * 100; 
+  }, [settings, localSettings, isAdmin]);
 
-  // --- DATA FETCHING --- //
-  // Separate fetchData from useEffect that calls it initially
-  const fetchData = useCallback(async (isInitialLoad = false) => {
-    // Prevent simultaneous fetches
-    if (isFetchingRef.current) {
-        return;
-    }
-    isFetchingRef.current = true; 
-    setIsRefreshing(true); // Indicate visual refresh start
-    if (!isInitialLoad) showToast('Syncing with Google Sheet...', 'info'); 
-
-    try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) {
-        let errorText = `Network response was not ok: ${response.statusText} (${response.status})`;
-        try { const text = await response.text(); if (text.includes('<title>Error</title>') || text.includes('Google Apps Script')) errorText = "Backend script error. Check Google Apps Script logs."; } catch(e) {/* Ignore */}
-        throw new Error(errorText);
-      }
-      
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !(contentType.includes("application/json") || contentType.includes("text/javascript"))) {
-         const textResponse = await response.text();
-         console.error("Non-JSON response received:", textResponse);
-         throw new Error("Received non-JSON response from server. Check Apps Script logs.");
-      }
-      const data = await response.json();
-      
-      if (data.error) {
-        if (data.error.includes("Spreadsheet ID")) throw new Error("Spreadsheet ID Error"); 
-        if (data.error.includes("Too many simultaneous invocations")) throw new Error("Too many simultaneous invocations");
-        throw new Error(data.error); 
-      }
-      
-      const fetchedSettings = data.settings || {};
-      setPlayers(data.players || []);
-      setSettings(fetchedSettings); 
-
-      // Initialize localSettings based on fetchedSettings ONLY on initial load
-      if (isInitialLoad) {
-        const initialLocalSettings = { ...fetchedSettings };
-        const cost = Number(fetchedSettings['Cost Per Square']) || 0;
-        const currentTotalPot = cost * 100;
-        ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
-            const percentKey = `${key} Percent`;
-            const existingPercent = fetchedSettings[percentKey];
-            if (existingPercent !== undefined && existingPercent !== '') {
-                initialLocalSettings[percentKey] = Number(existingPercent) || 0;
-                initialLocalSettings[key] = Math.round((initialLocalSettings[percentKey] / 100) * currentTotalPot);
-            }
-            else {
-                const amount = Number(initialLocalSettings[key]) || 0;
-                initialLocalSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
-                initialLocalSettings[key] = amount;
-            }
-        });
-        setLocalSettings(initialLocalSettings); 
-      }
-      
-      setScores(data.scores || []);
-      setLocalScores(data.scores || []); 
-      setFullGameNumbers(data.fullGameNumbers || { home: [], away: [] });
-      setFourQuarterNumbers(data.fourQuarterNumbers || { q1: {}, q2: {}, q3: {}, q4: {} });
-      
-      const paymentMethodsString = fetchedSettings?.['Payment Methods'] || '';
-      const currentMethods = paymentMethodsString.split(',').map(m => m.trim()).filter(Boolean);
-      if (!formPaymentMethod || !currentMethods.includes(formPaymentMethod)) {
-           setFormPaymentMethod(currentMethods[0] || ''); 
-      }
-
-      if (!isInitialLoad) showToast('Data synced!', 'success'); 
-
-    } catch (error) {
-      console.error("Failed to fetch data:", error); 
-      let errorMessage = `Error fetching data: ${error.message}`;
-      if (error.message === "Spreadsheet ID Error") errorMessage = "<b>Backend Error:</b> Your Spreadsheet ID is missing or incorrect in the Google Apps Script. Please update it and re-deploy.";
-      else if (error.message.includes("Network response") || error.message.includes("Failed to fetch")) errorMessage = "<b>Network Error:</b> Could not connect to the Google Sheet backend. Check your internet connection or the Apps Script URL.";
-      else if (error.message.includes("Too many simultaneous invocations")) errorMessage = "<b>Backend Busy:</b> The server is busy, please wait a moment and try syncing again.";
-      else if (error.message.includes("non-JSON response") || error.message.includes("Backend script error")) errorMessage = "<b>Backend Error:</b> Received an unexpected response from the server. Check Google Apps Script logs for errors.";
-      
-      if (isInitialLoad) setStartupError(errorMessage); 
-      showToast(errorMessage, 'error'); 
-
-    } finally {
-      if (isInitialLoad) setIsLoading(false); 
-      setIsRefreshing(false); 
-      isFetchingRef.current = false; // Mark fetch as completed
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [API_BASE_URL, showToast, formPaymentMethod]); // Dependencies for fetchData
-
-
-  // --- FONT LOADING & INITIAL FETCH --- //
-  useEffect(() => {
-    // Add Fonts & Styles
-    const fontLink = document.createElement('link');
-    fontLink.href = 'https://fonts.googleapis.com/css2?family=Russo+One&display=swap';
-    fontLink.rel = 'stylesheet';
-    document.head.appendChild(fontLink);
-    const style = document.createElement('style');
-     // Inject Tailwind dark mode class based on state
-    style.textContent = `
-      :root { --toast-bg: #1f2937; --toast-text: #f9fafb; } /* Default dark theme vars */
-      html.light { --toast-bg: #f3f4f6; --toast-text: #11182b; } /* Light theme vars */
-      body, .font-russo { font-family: 'Russo One', sans-serif; }
-      .font-sans-readable { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
-      @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      .animate-roll { animation: roll 0.5s linear infinite; }
-      .writing-mode-v-rl { writing-mode: vertical-rl; }
-      .no-select { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
-      .grid-cell-min-width { min-width: 1.5rem; } 
-    `;
-    document.head.appendChild(style);
-    
-    // Initial Fetch
-    fetchData(true); 
-
-    // Cleanup toast timer on unmount
-    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
-  }, [fetchData]); // Run only on mount (fetchData is stable)
-
-   // --- THEME MANAGEMENT --- //
-   useEffect(() => {
-     // Apply the theme class to the html element
-     const root = window.document.documentElement;
-     root.classList.remove(theme === 'light' ? 'dark' : 'light');
-     root.classList.add(theme);
-     // Optionally save theme preference to localStorage
-     // localStorage.setItem('squaresTheme', theme);
-   }, [theme]);
-
-   // Function to toggle theme
-   const toggleTheme = () => {
-       setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-   };
-   // --- END THEME MANAGEMENT --- //
-
-
-  // --- ADMIN PANEL LOCAL SETTINGS RESET --- //
-  useEffect(() => {
-    // Only reset localSettings when the panel becomes visible AND admin is logged in
-    if (showAdminPanel && isAdmin) {
-      const currentSettings = { ...settings }; 
-      const cost = Number(currentSettings['Cost Per Square']) || 0;
-      const currentTotalPot = cost * 100;
-       ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
-           const percentKey = `${key} Percent`;
-           const existingPercent = currentSettings[percentKey];
-           if (existingPercent !== undefined && existingPercent !== '') {
-               currentSettings[percentKey] = Number(existingPercent) || 0;
-               currentSettings[key] = Math.round((currentSettings[percentKey] / 100) * currentTotalPot);
-           }
-           else {
-               const amount = Number(currentSettings[key]) || 0;
-               currentSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
-               currentSettings[key] = amount;
-           }
-       });
-       setLocalSettings(currentSettings);
-    }
-    // Dependency array ONLY includes showAdminPanel and isAdmin
-    // This ensures it runs *only* when the panel visibility or admin status changes
-  }, [showAdminPanel, isAdmin, settings]); // Keep settings here to ensure reset uses latest saved data
-    
-
-
-  // --- DERIVED STATE & MEMOIZATION --- //
   const claimedSquaresMap = useMemo(() => {
     const map = new Map();
     if (Array.isArray(players)) { 
@@ -352,8 +179,199 @@ export default function App() {
   }, [scores, settings, fullGameNumbers, fourQuarterNumbers]);
   
   const paymentMethods = useMemo(() => (settings?.['Payment Methods'] || '').split(',').map(m => m.trim()).filter(Boolean), [settings]); 
+
+
+  const calculatePayoutAmount = useCallback((percentKey) => {
+    // Ensure localSettings is populated before calculating
+    if (!localSettings || Object.keys(localSettings).length === 0) return 0; 
+    const percent = Number(localSettings[percentKey]) || 0;
+    const calculated = totalPot > 0 ? Math.round((percent / 100) * totalPot) : 0;
+    return calculated;
+  }, [localSettings, totalPot]);
+
+
+  // --- DATA FETCHING --- //
+  const fetchData = useCallback(async (isInitialLoad = false) => {
+    // Prevent simultaneous fetches
+    if (isFetchingRef.current) {
+        return;
+    }
+    isFetchingRef.current = true; 
+    setIsRefreshing(true); // Indicate visual refresh start
+    // Only show "Syncing" toast for manual refreshes (not initial load)
+    if (!isInitialLoad) showToast('Syncing with Google Sheet...', 'info'); 
+
+    try {
+      const response = await fetch(API_BASE_URL);
+      if (!response.ok) {
+        let errorText = `Network response was not ok: ${response.statusText} (${response.status})`;
+        try { 
+            const text = await response.text(); 
+            if (text.includes('<title>Error</title>') || text.includes('Google Apps Script has completed') || text.includes('script function not found')) {
+                 errorText = "Backend script error. Check Google Apps Script logs/deployment."; 
+            }
+        } catch(e) {/* Ignore if reading text fails */}
+        throw new Error(errorText);
+      }
+      
+      const contentType = response.headers.get("content-type");
+       // Allow text/javascript as well, as GAS sometimes returns this
+      if (!contentType || !(contentType.includes("application/json") || contentType.includes("text/javascript"))) {
+         const textResponse = await response.text();
+         console.error("Non-JSON response received:", textResponse);
+         throw new Error("Received non-JSON response from server. Check Apps Script logs.");
+      }
+      const data = await response.json();
+      
+      if (data.error) {
+        if (data.error.includes("Spreadsheet ID")) throw new Error("Spreadsheet ID Error"); 
+        if (data.error.includes("Too many simultaneous invocations")) throw new Error("Too many simultaneous invocations");
+        throw new Error(data.error); 
+      }
+      
+      const fetchedSettings = data.settings || {};
+      setPlayers(data.players || []);
+      setSettings(fetchedSettings); 
+
+      // Initialize localSettings based on fetchedSettings ONLY on initial load
+      if (isInitialLoad) {
+        const initialLocalSettings = { ...fetchedSettings };
+        const cost = Number(fetchedSettings['Cost Per Square']) || 0;
+        const currentTotalPot = cost * 100;
+        ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
+            const percentKey = `${key} Percent`;
+            const existingPercent = fetchedSettings[percentKey];
+            if (existingPercent !== undefined && existingPercent !== '') {
+                initialLocalSettings[percentKey] = Number(existingPercent) || 0;
+                initialLocalSettings[key] = Math.round((initialLocalSettings[percentKey] / 100) * currentTotalPot);
+            }
+            else {
+                const amount = Number(initialLocalSettings[key]) || 0;
+                initialLocalSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
+                initialLocalSettings[key] = amount;
+            }
+        });
+        setLocalSettings(initialLocalSettings); 
+      }
+      
+      setScores(data.scores || []);
+      setLocalScores(data.scores || []); 
+      setFullGameNumbers(data.fullGameNumbers || { home: [], away: [] });
+      setFourQuarterNumbers(data.fourQuarterNumbers || { q1: {}, q2: {}, q3: {}, q4: {} });
+      
+      // Logic to set default payment method moved to its own useEffect
+      
+      if (!isInitialLoad) showToast('Data synced!', 'success'); 
+
+    } catch (error) {
+      console.error("Failed to fetch data:", error); 
+      let errorMessage = `Error fetching data: ${error.message}`;
+      if (error.message === "Spreadsheet ID Error") errorMessage = "<b>Backend Error:</b> Your Spreadsheet ID is missing or incorrect in the Google Apps Script. Please update it and re-deploy.";
+      else if (error.message.includes("Network response") || error.message.includes("Failed to fetch")) errorMessage = "<b>Network Error:</b> Could not connect to the Google Sheet backend. Check your internet connection or the Apps Script URL.";
+      else if (error.message.includes("Too many simultaneous invocations")) errorMessage = "<b>Backend Busy:</b> The server is busy, please wait a moment and try syncing again.";
+      else if (error.message.includes("non-JSON response") || error.message.includes("Backend script error")) errorMessage = "<b>Backend Error:</b> Received an unexpected response from the server. Check Google Apps Script logs for errors.";
+      
+      if (isInitialLoad) setStartupError(errorMessage); 
+      showToast(errorMessage, 'error'); 
+
+    } finally {
+      if (isInitialLoad) setIsLoading(false); 
+      setIsRefreshing(false); // Visual indicator stops
+      isFetchingRef.current = false; // Allow next fetch
+    }
+  }, [API_BASE_URL, showToast]); // Removed formPaymentMethod
+
+
+  // --- FONT LOADING & INITIAL FETCH --- //
+  useEffect(() => {
+    // Add Fonts & Styles
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Russo+One&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head.appendChild(fontLink);
+    const style = document.createElement('style');
+     // Inject Tailwind dark mode class based on state
+    style.textContent = `
+      :root { --toast-bg: #1f2937; --toast-text: #f9fafb; } /* Default dark theme vars */
+      html.light { --toast-bg: #f3f4f6; --toast-text: #11182b; } /* Light theme vars */
+      body, .font-russo { font-family: 'Russo One', sans-serif; }
+      .font-sans-readable { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+      @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      .animate-roll { animation: roll 0.5s linear infinite; }
+      .writing-mode-v-rl { writing-mode: vertical-rl; }
+      .no-select { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+      .grid-cell-min-width { min-width: 1.5rem; } 
+    `;
+    document.head.appendChild(style);
+    
+    // Initial Fetch
+    fetchData(true); 
+
+    // Cleanup toast timer on unmount
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  // --- FIX: Removed fetchData from dependency array to break loop/fix error ---
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount
+  // --- END FIX ---
+
+   // --- THEME MANAGEMENT --- //
+   useEffect(() => {
+     // Apply the theme class to the html element
+     const root = window.document.documentElement;
+     root.classList.remove(theme === 'light' ? 'dark' : 'light');
+     root.classList.add(theme);
+   }, [theme]);
+   
+   // --- useEffect to set default payment method ---
+   useEffect(() => {
+       // Only run if settings are loaded
+       if (Object.keys(settings).length > 0) { 
+           const paymentMethodsString = settings?.['Payment Methods'] || '';
+           const currentMethods = paymentMethodsString.split(',').map(m => m.trim()).filter(Boolean);
+           // Only set if current method is blank or not in the valid list
+           if (!formPaymentMethod || !currentMethods.includes(formPaymentMethod)) {
+               setFormPaymentMethod(currentMethods[0] || ''); 
+           }
+       }
+   // Run this when settings load, or if formPaymentMethod somehow gets reset
+   }, [settings, formPaymentMethod]); 
+   // --- END useEffect ---
+
+
+   // Function to toggle theme
+   const toggleTheme = () => {
+       setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+   };
+   // --- END THEME MANAGEMENT --- //
+
+
+  // --- ADMIN PANEL LOCAL SETTINGS RESET --- //
+  useEffect(() => {
+    // Only reset localSettings when the panel becomes visible AND admin is logged in
+    if (showAdminPanel && isAdmin) {
+      const currentSettings = { ...settings }; 
+      const cost = Number(currentSettings['Cost Per Square']) || 0;
+      const currentTotalPot = cost * 100;
+       ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
+           const percentKey = `${key} Percent`;
+           const existingPercent = currentSettings[percentKey];
+           if (existingPercent !== undefined && existingPercent !== '') {
+               currentSettings[percentKey] = Number(existingPercent) || 0;
+               currentSettings[key] = Math.round((currentSettings[percentKey] / 100) * currentTotalPot);
+           }
+           else {
+               const amount = Number(currentSettings[key]) || 0;
+               currentSettings[percentKey] = currentTotalPot > 0 ? Math.round((amount / currentTotalPot) * 100) : 0;
+               currentSettings[key] = amount;
+           }
+       });
+       setLocalSettings(currentSettings);
+    }
+    // Dependency array ensures this runs when panel opens or settings data updates
+  }, [showAdminPanel, isAdmin, settings]); 
+    
   
-  // --- GENERAL FUNCTIONS --- //
+  // --- GENERAL FUNCTIONS (MOVED AFTER MEMOS) --- //
   
   const handleSquareClick = useCallback((squareNumber) => {
     if (claimedSquaresMap.has(squareNumber)) {
@@ -374,6 +392,7 @@ export default function App() {
     showToast(`${count} random square(s) selected.`, 'info');
   }, [numToRandomize, claimedSquaresMap, showToast]); 
 
+  // --- MODIFIED: handleClaimSubmit ---
   const handleClaimSubmit = useCallback(async (e) => { 
     e.preventDefault();
     if (!formName.trim() || !formInitials.trim() || selectedSquares.length === 0) {
@@ -394,30 +413,84 @@ export default function App() {
       }
     };
     try {
+      if (isFetchingRef.current) {
+          showToast("Sync in progress, please wait...", "warning");
+          setIsSubmitting(false); 
+          return;
+      }
+      isFetchingRef.current = true;
+
       const response = await fetch(API_BASE_URL, { 
           method: 'POST', 
           headers: { 'Content-Type': 'text/plain' }, 
           body: JSON.stringify(payload) 
       });
+      
+      isFetchingRef.current = false; // Release ref *after* fetch, before processing
+
+      let result;
+      let errorMsg = `HTTP error! status: ${response.status}`; // Default error
+      
+      const textResponse = await response.text(); // Always get text first
+      
+      try {
+           result = JSON.parse(textResponse); // Try to parse as JSON
+      } catch (e) {
+           // If JSON parse fails, it might be the "raw" error string
+           // --- FIX: Check for the specific error text first ---
+           if (textResponse.includes("These initials are already used by a different player")) {
+               // Extract the user-friendly part of the error
+               const match = textResponse.match(/Error: (.*)/); 
+               errorMsg = match ? match[1] : "Initials conflict detected.";
+               throw new Error(errorMsg); // Throw the specific error
+           } else if (textResponse.includes("Could not acquire lock")) {
+                errorMsg = "Server busy, please try claiming again shortly.";
+                throw new Error(errorMsg); // Throw the specific error
+           }
+           // --- END FIX ---
+           
+           console.error("Failed to parse server response:", e);
+           if (!response.ok) throw new Error(errorMsg); 
+           throw new Error("Failed to parse server response.");
+      }
+
+
       if (!response.ok) {
-        let errorMsg = `HTTP error! status: ${response.status}`;
-        try { const errorResult = await response.json(); errorMsg = errorResult?.message || errorMsg; } catch (parseError) { /* Ignore */ }
+        // Use message from JSON if available
+        errorMsg = result?.message || `HTTP error! status: ${response.status}`;
         throw new Error(errorMsg);
       }
-      const result = await response.json();
-      if (result.status !== 'success') throw new Error(result.message || 'Unknown error claiming squares.');
-      showToast('Success! Squares claimed.', 'success');
+
+      if (result.status !== 'success') {
+          // This will catch {status: 'error', message: '...'}
+          throw new Error(result.message || 'Unknown error claiming squares.');
+      }
+      
+      showToast(result.message || 'Success! Squares claimed.', 'success'); 
       setFormName('');
       setFormInitials('');
-      setSelectedSquares([]);
-      await fetchData(false); 
+      setSelectedSquares([]); // This line is correct
+      
+      await fetchData(false); // Refresh data AFTER success
+
     } catch (error) {
       console.error("Failed to claim squares:", error);
-      showToast(`Error claiming squares: ${error.message}`, 'error');
+      // --- FIX: Make check case-insensitive and clean message ---
+      const errorMessage = error.message.replace("Server error processing request: ", "");
+      const errorMessageLower = errorMessage.toLowerCase();
+      
+      if (errorMessageLower.includes("initials") && errorMessageLower.includes("already used")) {
+           showToast(errorMessage, 'warning'); // Show as a warning
+      } else {
+           showToast(`Error claiming squares: ${errorMessage}`, 'error'); // Show as error
+      }
+      // --- END FIX ---
+      isFetchingRef.current = false; // Ensure ref is released on error
     } finally {
-      setIsSubmitting(false); 
+      setIsSubmitting(false); // Always stop loading indicator
     }
   }, [formName, formInitials, selectedSquares, settings, formPaymentMethod, API_BASE_URL, fetchData, showToast]); 
+  // --- END MODIFIED: handleClaimSubmit ---
 
 
   const handleAdminLogin = useCallback((e) => { 
@@ -447,28 +520,38 @@ export default function App() {
         headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({ action, payload }),
       });
+
+      isFetchingRef.current = false; // Release ref *after* fetch
+       
+      let result;
+      let errorMsg = `Network error: ${response.status} ${response.statusText}`; // Default error
+
+      try { 
+           result = await response.json(); 
+           if(!response.ok) {
+                errorMsg = result?.message || errorMsg;
+           }
+      } catch (jsonError) { 
+           console.error("Failed to parse JSON response for action:", action, jsonError);
+           if (!response.ok) throw new Error(errorMsg); // Throw network error if parse failed
+           throw new Error(`Failed to parse response from server for action '${action}'.`); 
+      }
        
       if (!response.ok) {
-         let errorMsg = `Network error: ${response.status} ${response.statusText}`;
-         try { const errorResult = await response.json(); errorMsg = errorResult?.message || errorMsg; } catch (parseError) { /* Ignore */ }
-         throw new Error(errorMsg);
+         throw new Error(errorMsg); // Throw error from JSON if available
        }
-
-       let result;
-       try { result = await response.json(); } catch (jsonError) { throw new Error(`Failed to parse response from server for action '${action}'.`); }
        
       if (result.status !== 'success') { throw new Error(result.message || `Backend action '${action}' failed.`); }
 
       showToast(`Success: ${result.message || action + ' completed.'}`, 'success');
       
-      // Release ref BEFORE fetching data to allow the fetch
-      isFetchingRef.current = false; 
+      // Fetch data AFTER releasing ref and getting success response
       await fetchData(false); 
       
       // Update main settings and localSettings state AFTER successful fetch for settings update
       if (action === 'updateSettings') {
-        // Need to recalculate percentages/amounts based on saved data
-        const updatedSettings = { ...payload }; // Start with the payload sent
+        // Recalculate based on the payload that was *successfully* saved
+        const updatedSettings = { ...payload }; 
         const cost = Number(updatedSettings['Cost Per Square']) || 0;
         const pot = cost * 100;
         ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(key => {
@@ -484,18 +567,27 @@ export default function App() {
 
     } catch (error) {
       console.error(`Admin action "${action}" failed:`, error);
-      let userErrorMessage = `Error during action '${action}': ${error.message}`;
-      if (error.message.includes("Missing required data") || error.message.includes("Invalid action") || error.message.includes("outdated")) {
-          userErrorMessage = "Error: Backend script might be outdated or missing data. Please check/update Google Apps Script and re-deploy.";
-      } else if (error.message.includes("not found")) {
-           userErrorMessage = `Warning: ${error.message}`; 
+      // --- FIX: Clean error message before display ---
+      const errorMessage = error.message;
+      let cleanErrorMessage = errorMessage.replace("Server error processing request: ", "");
+      let toastType = 'error'; // Default
+
+      if (errorMessage.includes("Missing required data") || errorMessage.includes("Invalid action") || errorMessage.includes("outdated")) {
+          cleanErrorMessage = "Error: Backend script might be outdated or missing data. Please check/update Google Apps Script and re-deploy.";
+      } else if (errorMessage.includes("not found")) {
+           cleanErrorMessage = `Warning: ${errorMessage}`; 
+           toastType = 'warning';
+      } else if (errorMessage.includes("Initials") && (errorMessage.includes("already taken") || errorMessage.includes("already used"))) {
+           toastType = 'warning';
+           // cleanErrorMessage is already set correctly here
       }
-      showToast(userErrorMessage, error.message.includes("not found") ? 'warning' : 'error');
+      
+      showToast(cleanErrorMessage, toastType);
+      // --- END FIX ---
       isFetchingRef.current = false; // Ensure ref is reset on error
       return false;
     } finally {
-         // Ensure ref is always reset in case of unexpected errors
-         isFetchingRef.current = false; 
+         isFetchingRef.current = false; // Ensure ref is always reset
     }
   }, [API_BASE_URL, fetchData, showToast]); // Dependencies
 
@@ -591,19 +683,19 @@ export default function App() {
         const updatedSettings = { ...prev };
         updatedSettings[key] = value; 
 
+        // Recalculate derived dollar amounts immediately for display
         const cost = Number(updatedSettings['Cost Per Square']) || 0;
         const pot = cost * 100;
 
-        // Recalculate derived dollar amounts immediately for display
-        if (key.endsWith(' Percent') || key === 'Cost Per Square') {
-             ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(amountKey => {
-                 const percentKey = `${amountKey} Percent`;
-                 const percent = Number(updatedSettings[percentKey]) || 0; 
-                 // Store the calculated amount for display in the payout section
-                 // This ensures the "= $X" part updates live as percentage or cost changes
-                 updatedSettings[amountKey] = Math.round((percent / 100) * pot); 
-             });
-        }
+        ['Payout Q1', 'Payout Q2', 'Payout Q3', 'Payout Final'].forEach(amountKey => {
+            const percentKey = `${amountKey} Percent`;
+            let percent = Number(updatedSettings[percentKey]) || 0;
+            
+            // If cost or percent changed, update the dollar amount
+            if (key === 'Cost Per Square' || key === percentKey) {
+                 updatedSettings[amountKey] = Math.round((percent / 100) * pot);
+            }
+        });
 
         return updatedSettings; 
     });
@@ -628,8 +720,11 @@ export default function App() {
      let isValid = true;
      let totalPercent = 0; 
 
+     // Need to read from localSettings for validation
+     const settingsToValidate = { ...localSettings };
+
      for (const field of numericFields) {
-         const value = localSettings[field];
+         const value = settingsToValidate[field];
          if (value !== '' && (isNaN(Number(value)) || Number(value) < 0)) {
               showToast(`Invalid value for ${field}. Please enter a non-negative number or leave blank.`, 'error');
               isValid = false;
@@ -650,7 +745,7 @@ export default function App() {
 
       const urlFields = ['Home Team Logo URL', 'Away Team Logo URL'];
        for (const field of urlFields) {
-           const value = localSettings[field];
+           const value = settingsToValidate[field];
            if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
                showToast(`Invalid URL for ${field}. Please include http:// or https://, or leave blank.`, 'error');
                isValid = false;
@@ -660,6 +755,7 @@ export default function App() {
 
 
      if (isValid) {
+         // Recalculate final dollar amounts just before saving
          const finalSettingsToSave = { ...localSettings };
          const finalCost = Number(finalSettingsToSave['Cost Per Square']) || 0;
          const finalPot = finalCost * 100;
@@ -715,13 +811,10 @@ export default function App() {
 
 
   // --- RENDER --- //
- // ... (rest of the component remains the same) ...
- // --- RENDER --- //
   if (isLoading) {
       return (<div className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center justify-center"><RefreshCwIcon className="animate-spin h-12 w-12 mb-4"/><p className="text-xl font-russo">Loading Football Squares...</p></div>);
   }
   
-  // Use dangerouslySetInnerHTML only if startupError contains HTML, otherwise render directly
   const renderStartupError = () => {
       if (typeof startupError === 'string' && startupError.includes('<b>')) {
           return <span dangerouslySetInnerHTML={{ __html: startupError }}></span>;
@@ -860,7 +953,7 @@ export default function App() {
               <span>Cost:</span>
               <span className="text-yellow-600 dark:text-yellow-400">${Number(settings?.['Cost Per Square']) || 0}</span> 
             </div>
-            {/* --- NEW Theme Toggle Button --- */}
+            {/* --- Theme Toggle Button --- */}
             <div className="flex items-center gap-2">
                  <button onClick={toggleTheme} className={`flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-transform transform hover:scale-105 ${theme === 'light' ? 'bg-gray-200 hover:bg-gray-300 text-gray-800' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
                     {theme === 'light' ? <MoonIcon /> : <SunIcon />}
@@ -890,29 +983,30 @@ export default function App() {
               <div className={`p-1 rounded-xl shadow-lg relative overflow-hidden flex-1 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}> 
                   <div className="grid grid-cols-11 gap-[1px] sm:gap-0.5"> 
                       
-                      {/* --- MODIFIED Top-Left Corner --- */}
-                       {/* Adjusted background and text color */}
+                       {/* --- FINAL Top-Left Corner --- */}
                        <div className={`relative aspect-square rounded-sm text-[5px] xs:text-[6px] sm:text-[9px] font-sans-readable overflow-hidden grid-cell-min-width p-[1px] sm:p-0.5 ${theme === 'light' ? 'bg-gray-200 text-gray-700' : 'bg-gray-700 text-gray-300'}`}>
                            {settings['Game Mode'] === '4 Quarters' && (
-                               <div className="relative w-full h-full"> {/* Use relative positioning container */}
-                                   {/* Horizontal Labels */}
+                               <div className="relative w-full h-full"> {/* Container for absolute positioning */}
+                                   {/* Horizontal Labels (Bottom Edge) */}
                                    <div className="absolute bottom-0 left-0 right-0 grid grid-cols-4">
                                        <span className="col-start-1 flex items-end justify-center font-bold text-orange-600 dark:text-orange-400">Q1</span>
                                        <span className="col-start-2 flex items-end justify-center font-bold text-yellow-600 dark:text-yellow-300">Q2</span>
                                        <span className="col-start-3 flex items-end justify-center font-bold text-blue-600 dark:text-blue-400">Q3</span>
+                                       {/* F is positioned separately */}
                                    </div>
-                                   {/* Vertical Labels */}
+                                   {/* Vertical Labels (Right Edge) */}
                                    <div className="absolute top-0 bottom-0 right-0 grid grid-rows-4">
                                        <span className="row-start-1 flex items-center justify-end font-bold text-orange-600 dark:text-orange-400">Q1</span>
                                        <span className="row-start-2 flex items-center justify-end font-bold text-yellow-600 dark:text-yellow-300">Q2</span>
                                        <span className="row-start-3 flex items-center justify-end font-bold text-blue-600 dark:text-blue-400">Q3</span>
+                                        {/* F is positioned separately */}
                                    </div>
-                                    {/* Shared Final Label */}
+                                    {/* Shared Final Label (Bottom Right Corner) */}
                                    <span className="absolute bottom-0 right-0 flex items-end justify-end font-bold text-purple-600 dark:text-purple-400 pr-0.5 pb-0.5">F</span>
                                </div>
                            )}
                        </div>
-                       {/* --- END MODIFICATION --- */}
+                       {/* --- END FINAL Top-Left Corner --- */}
 
 
                       {/* 2. Home Numbers */}
