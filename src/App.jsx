@@ -53,13 +53,14 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false); // NEW: State for instructions modal
+  const [showInstructions, setShowInstructions] = useState(false); 
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  const [isRefreshing, setIsRefreshing] = useState(false); // Only for visual indicator
+  const [isRefreshing, setIsRefreshing] = useState(false); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [localScores, setLocalScores] = useState([]);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+  const [infoBox, setInfoBox] = useState({ show: false, name: '' }); // NEW: State for info box
 
   // Admin Panel State
   const [localSettings, setLocalSettings] = useState({}); 
@@ -381,14 +382,15 @@ export default function App() {
     const claimedBy = claimedSquaresMap.get(squareNumber);
     
     if (claimedBy) {
-      // If the square is claimed, show the full name
-      showToast(claimedBy.name, 'info'); 
+      // If the square is claimed, show the info box
+      setInfoBox({ show: true, name: claimedBy.name }); 
       return; // Stop here, don't try to select it
     }
 
-    // If the square is NOT claimed, toggle its selection
+    // If the square is NOT claimed, hide info box & toggle its selection
+    setInfoBox({ show: false, name: '' }); // Hide box if open
     setSelectedSquares(prev => prev.includes(squareNumber) ? prev.filter(s => s !== squareNumber) : [...prev, squareNumber]);
-  }, [claimedSquaresMap, showToast]); 
+  }, [claimedSquaresMap]); // removed showToast, setInfoBox/setSelectedSquares are stable
   // --- END MODIFICATION ---
 
   const handleRandomizeSelection = useCallback(() => { 
@@ -938,6 +940,26 @@ export default function App() {
     </div>
   );
 
+  // --- NEW: InfoBox Component ---
+  const InfoBox = ({ show, name, onClose }) => {
+    if (!show) return null;
+
+    return (
+      <div className={`fixed top-28 sm:top-24 left-1/2 -translate-x-1/2 z-50 py-3 px-5 rounded-lg shadow-lg font-sans-readable flex items-center gap-4 ${theme === 'light' ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'}`}>
+        <span className="font-semibold text-lg">{name}</span>
+        <button 
+          onClick={onClose} 
+          className="text-blue-200 hover:text-white text-2xl leading-none font-bold"
+          aria-label="Close"
+          style={{ lineHeight: 0.8 }} // Tweak to vertically center the 'x'
+        >
+          &times;
+        </button>
+      </div>
+    );
+  };
+  // --- END InfoBox Component ---
+
   // Main App Return - Added theme classes
   return (
     <div className={`min-h-screen font-russo p-4 sm:p-6 lg:p-8 no-select ${theme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-900 text-white'}`}> 
@@ -958,6 +980,12 @@ export default function App() {
         <RandomizingModal isOpen={isRandomizing} />
         {/* --- NEW: Render Instructions Modal --- */}
         <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
+        {/* --- NEW: Render InfoBox Modal --- */}
+        <InfoBox 
+            show={infoBox.show} 
+            name={infoBox.name} 
+            onClose={() => setInfoBox({ show: false, name: '' })} 
+        />
         {/* --- END NEW --- */}
 
         <header className={`rounded-xl p-4 mb-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 ${theme === 'light' ? 'bg-white shadow-gray-300' : 'bg-gray-800 shadow-black/30'}`}>
@@ -1444,7 +1472,8 @@ export default function App() {
         {toast.show && (<div className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-out font-sans-readable ${
              toast.type === 'error' ? 'bg-red-600 text-white' 
            : toast.type === 'warning' ? 'bg-yellow-400 text-black' 
-           : theme === 'light' ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-green-600 text-white'}`}
+           : toast.type === 'info' ? (theme === 'light' ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-blue-600 text-white') // Info toast
+           : theme === 'light' ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-green-600 text-white'}`} // Success toast
           ><span dangerouslySetInnerHTML={{ __html: toast.message }}></span></div>)}
           
         {/* --- NEW Footer Credit --- */}
