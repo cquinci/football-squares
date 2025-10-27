@@ -376,12 +376,20 @@ export default function App() {
   
   // --- GENERAL FUNCTIONS (MOVED AFTER MEMOS) --- //
   
+  // --- MODIFIED: handleSquareClick ---
   const handleSquareClick = useCallback((squareNumber) => {
-    if (claimedSquaresMap.has(squareNumber)) {
-      showToast('This square is already taken.', 'error'); return;
+    const claimedBy = claimedSquaresMap.get(squareNumber);
+    
+    if (claimedBy) {
+      // If the square is claimed, show the full name
+      showToast(claimedBy.name, 'info'); 
+      return; // Stop here, don't try to select it
     }
+
+    // If the square is NOT claimed, toggle its selection
     setSelectedSquares(prev => prev.includes(squareNumber) ? prev.filter(s => s !== squareNumber) : [...prev, squareNumber]);
   }, [claimedSquaresMap, showToast]); 
+  // --- END MODIFICATION ---
 
   const handleRandomizeSelection = useCallback(() => { 
     const availableSquares = Array.from({ length: 100 }, (_, i) => i + 1).filter(num => !claimedSquaresMap.has(num));
