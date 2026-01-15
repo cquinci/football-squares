@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, Fragment, useRef } fr
 
 // --- CONFIGURATION --- //
 // UPDATED API URL:
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbz6zdVrmXkw3PM2wjPPqC128WcvC4hKZfTxzfqLBk2kh_5hkbT45oKOfT2_Mg8owaQmbQ/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxz307HfbjU9LLxnFWCYRizNPHxjuoTs5wSLpSn_Va50TOkJJfWRsWroDnhqSHLBb-V/exec';
 
 // --- HELPER ICONS --- //
 // Adjusted icons to use currentColor for better theme compatibility
